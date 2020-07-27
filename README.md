@@ -1,10 +1,8 @@
-# README for the production of forcing data for s2p3_rv2.0
+# S2P3-R v2.0 README
 
 The instructions here assume you are working on a linux machine
 
-############################################################
-#  Introduction                                            #
-############################################################
+##  Introduction
 
 This repository relates to the manuscript 'S2P3-R v2.0: computationally efficient modelling of shelf seas on regional to global scales' (Halloran et al., 2020) submitted to GMD
 
@@ -12,17 +10,17 @@ The repository contains three top level directories (forcing,  model and  proces
 
 This README takes the user through the initial requirements, then generating the forcing files, running the model and undertaking basic post-processing.  
 
-############################################################
-#  Requirements                                            #
-############################################################
+##  Requirements
 
 - git (https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 
 	- install with:
 
+```
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install git
+```
 
 - Python2.7 with additional libraries (see below)
 
@@ -49,9 +47,7 @@ conda install -c conda-forge gridfill
 
 - The OSU Tidal Data Inversion software, installation described below (http://volkov.oce.orst.edu/tides/)
 
-############################################################
-# Installation                                             #
-############################################################
+## Installation
 
 
 clone this repository to your computer

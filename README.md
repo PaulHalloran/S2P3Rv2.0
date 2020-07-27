@@ -12,6 +12,12 @@ This README takes the user through the initial requirements, then generating the
 
 ##  Requirements
 
+- GFortran compiler (https://gcc.gnu.org/wiki/GFortran)
+
+```
+sudo apt-get install gfortran
+```
+
 - git (https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 
 	- install with:
@@ -23,27 +29,20 @@ sudo apt-get install git
 ```
 
 - Python2.7 with additional libraries (see below)
-
 	- installing conda will make this easier https://conda.io/docs/user-guide/install/index.html
-
 		- additional libraries can then be installed with:
 
+```
 conda install pandas
-
 conda install numpy
-
 conda install -c conda-forge iris
-
 conda install -c conda-forge iris-grib
-
 conda install matplotlib
-
 conda install -c conda-forge gridfill
+```
 
 - CDO (https://code.mpimet.mpg.de/projects/cdo/)
-
 	- instructions: https://code.mpimet.mpg.de/projects/cdo/wiki#Download-Compile-Install note this can be tricky - make sure that it used the same netcdf libraries and hdf libraries as your python bits and pieces
-
 
 - The OSU Tidal Data Inversion software, installation described below (http://volkov.oce.orst.edu/tides/)
 
@@ -52,45 +51,63 @@ conda install -c conda-forge gridfill
 
 clone this repository to your computer
 
+```
 git clone https://github.com/PaulHalloran/S2P3Rv2.0.git
+```
 
 Move into the S2P3Rv2.0 directory
 
+```
 cd S2P3Rv2.0
+```
 
-## Setting up and generating forcing data
+# Setting up and generating forcing data
 
-Download OSU data and software:
+Tidal slope is an important forcing to the model. The forcing scripts generate this using the Oregon State University TPOX tidal data (https://www.tpxo.net/home)
+
+First ownload OSU data and software:
 
 download the TPXO9.1 bin file
 
+```
 wget ftp://ftp.oce.orst.edu/dist/tides/Global/tpxo9.tar.gz
+```
 
 uncompress this file:
 
+```
 tar zxvf tpxo9.tar.gz
+```
 
 get the tidal calculation software
 
+```
 wget ftp://ftp.oce.orst.edu/dist/tides/OTPS2.tar.Z
+```
 
 uncompress this
 
+```
 tar zxvf OTPS2.tar.Z
+```
 
-move the data you have downlaoded into the current working dorectory (ignoring the waning about 'cannot move...'):
+move the data you have downlaoded into the current working dorectory (ignoring the  warning about 'cannot move...'):
 
+```
 mv OTPS2/* .
+```
 
-(note, ignore the warning: mv: cannot move 'OTPS2/DATA' to './DATA': Directory not empty)
+Move the data out of the subdirectory to your working directory:
 
-then move the data out of a subdirectory to your wokring directory:
-
+```
 mv OTPS2/DATA/load_file DATA/
+```
 
-then move our own versino of the Model_atlas file (specific to our requirements here) to our data directory
+Move our own version of the Model_atlas file (specific to our requirements here) to our data directory
 
+```
 mv Model_atlas DATA/
+```
 
 if required install gfortran
 

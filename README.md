@@ -223,9 +223,7 @@ generate teh nitrate forcing ancillary with:
 python2.7 initialisation_nitrate.py
 ```
 
-##################################################################
-# forcing files                                                   #
-##################################################################
+### Summary of the forcing files
 
 The files:
 
@@ -233,6 +231,10 @@ s12_m2_s2_n2_h_map.dat, initial_nitrate.dat
 
 and those listed by
 
+```
 ls met_data/*.dat
+```
 
 are those required to run the model these need to be copied to the /domain and meteorology directories where the model has been set up respectively (see readme for running the model)
+
+## Setting up and running the model

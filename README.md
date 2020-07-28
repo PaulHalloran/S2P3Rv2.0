@@ -224,7 +224,7 @@ output_file_name = 'initial_nitrate.dat'
 domain_file_name = 's12_m2_s2_n2_h_map.dat'
 location_of_World_Ocean_Atlas13_Nitrate_file =  '/the_path_to_your_downloaded_World_ocean_atlas_data/woa13_all_n00_01.nc'
 
-generate teh nitrate forcing ancillary with:
+Generate the nitrate forcing ancillary with:
 
 ```
 python2.7 initialisation_nitrate.py
@@ -247,7 +247,7 @@ are those required to run the model these need to be copied to the /domain and m
 ## Setting up and running the model
 
 
-*Hint. You may want to speed things up by creating a RAM disk and making this the temporary location to hold the unzipped met data.
+*Hint. You may want to speed things up by creating a RAM disk and making this the temporary location to hold the unzipped met data.*
 
 e.g.
 ```
@@ -255,7 +255,6 @@ sudo mkdir /mnt/ramdisk
 sudo mount -t tmpfs -o size=3g tmpfs /mnt/ramdisk
 then your temp location is  /mnt/ramdisk:
 ```
-*
 
 Move into the 'model' directory within S2P3Rv2.0
 
@@ -279,7 +278,7 @@ If working on a simple computer and following teh instructions exactly as above 
 
 *Where **my_meterology_path** is location you specified as the 'output_directory' in the script with a name like 'process_x_for_s2p3_rv2.0.py', and **my_met_path_for_model_runs** is the location you want the model to read the files from.*
 
-*Note that there is no need to copy these files, you could just point to the location where they were produced if not undertaking muyltiple different runs.*
+*Note that there is no need to copy these files, you could just point to the location where they were produced if not undertaking multiple different runs.*
 
 ```
 cp /my_path/S2P3Rv2.0/forcing/s12_m2_s2_n2_h_map.dat /my_path/S2P3Rv2.0/model/domain/
@@ -288,33 +287,50 @@ cp -r my_meterology_path/met_data_*.tar.gz my_met_path_for_model_runs/
  
 ```
 
-scp example_location_1/s2p3_rv2.0_forcing/initial_nitrate.dat example_location_2/s2p3_rv2.0/domain
-
-scp -r example_location_1/s2p3_rv2.0_met_data/met_data_*.tar.gz example_location_2/my_runs_met_data
-
 #running the model
 
-before running you will need to edit at least one line in:
+before running you will need to edit the top section of:
 
-s2p3_rv2.0/main/run_map_parallel.py
+```
+/my_path/S2P3Rv2.0/model/main/run_map_parallel.py
+```
 
-Here you must change the line 'base_directory = ...' to point to the s2p3_rv2.0 directory on your computer
+The lines to edit are
 
-You will also probably have to edit the 'met_data_location = ' to point to the locatino you have copied the tar.gz met files to (example_location_2/my_runs_met_data in the example above)
+```
+base_directory = '/my_path/s2p3_rv2.0/' # This is the directory containing the 'forcing', 'model' and 'met' directories.
+num_procs = mp.cpu_count() # this will use all available processors. Note that on a multi-node machine the model can only use the processors on one node
+# num_procs = 1 # The default is to use all available processors, but it is possible to specify a smaller number of processors.
 
-You may also have to create the tempoarry directory which will hold the untarred and gziped met files (e.g. met_data_temporary_location = base_directory+'met/spatial_data/')
+output_directory = '/some_directory/'  # the directory where you want the output from the model to be written
 
-You may well also want to change the number or processors, output file names etc. here
+output_file_name = 'a_filename_to_identify_the_output_from_this_specific_simulation'
+meterological_file_name = 'meterological_data' # leave this as it is unless you have changed the code described within the 'Producing the meteorological files' section 
+domain_file_name = 's12_m2_s2_n2_h_map.dat' # This is the name of the output fine produced by running 'tides_bathymetry.py'
+nutrient_file_name = 'initial_nitrate.dat' # This is the name of the output fine produced by running 'initialisation_nitrate.py'
+executable_file_name = 's2p3_rv2.0' # The is the compiled model executable, i.e. teh righthand side of the line 'gfortran -Ofast -o s2p3_rv2.0 s2p3_rv2.0.f90' run above. 
 
-Under the heading 'Variables to output from model' you can select which variables to output from the model, see the model output section below.
+met_data_location = '/my_met_path_for_model_runs/' # The location containing the tar.gz met files (in the format met_data_year.tar.gz). See the line 'cp -r my_meterology_path/met_data_*.tar.gz my_met_path_for_model_runs/' above
 
-then run with either:
+met_data_temporary_location = '/mnt/ramdisk/' # The model uncompresses the meteorological data files to a location from which it can be read quickly. The example here is a RAMdisk (see above), but it can be any storage - ideally fast storage.
+
+start_year = 1950 # The year for which to start the model simulation
+
+end_year = 2100 # The last year of teh simulation. It is is the same as start year the model will simulate for 1 full year
+depth_min = 4 # The most shallow water depth to run the model in. NOTE that these numbers MUST be the same as those used in the scripts used to produce the meterology and nutrient files, otherwse data will not be taken for the correct lats/lons and/or the script will fail
+depth_max = 50 # The deeped water depth to run teh model for (i.e. so you are not running the model in the open ocean)
+write_error_output = False # Change to True for debugging
+
+parallel_processing = True # True if you want to run on more than one processor. A single processor may make some debugging easier.
+
+generate_netcdf_files = True #If True, saves model output as netcdf files. Set to False if you have set write_error_output to True 
+```
+
+- Run with either:
 
 python2.7 run_map_parallel.py
 
-OR if you are running on a cluster/supercomputer with a batch system, you may be able to use a runscript like runscript_parallel and submit with something like:
-
-msub runscript_parallel
+OR if you are running on a cluster/supercomputer you may need to submit this with a runscript specific to your batch system. An example using msub is provided in the file 'runscript_parallel'. This woudl be submitted with 'msub runscript_parallel'
 
 #model output
 

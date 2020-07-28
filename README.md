@@ -118,7 +118,7 @@ gfortran -o predict_tide -fconvert=swap -frecord-marker=4 predict_tide.f90 subs.
 gfortran -o extract_local_model -fconvert=swap -frecord-marker=4 extract_local_model.f90 subs.f90
 ```
 
-### Next we can producing the domain file
+### Producing the domain file
 This file contains the latitude, longitude, tidal and bathymetry data for the simulation's domain
 
 - Obtain your chosen bathymetry file in netcdf format. The global simulations in Halloran et al., 2020 use the ETOPO1 product (obtained from https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/netcdf/)
@@ -200,7 +200,14 @@ python2.7 example_ecmwf_era5_retrieval_script_netcdf.py
 
 Note that you may wish you edit the list of years under each 'year' heading to download more or less data. 
 
-Once the data is downloaded, the meterological forcing files can be produced by running 'process_ecmwf_era5_for_s2p3_rv2.0.py'
+- Once the data is downloaded, iedit the file process_ecmwf_era5_for_s2p3_rv2.0.py to specify the:
+      - spatial resolution you want the atm. forcing data to be at
+      - the years for which you want to perform the run
+      - the name of the cmip model you want to process (cmip_model = )
+      - the experiment name you want to process (experiment = )
+      - the location of the merged netcdf files for that model/experiment (directory_containing_files_to_process = )
+
+- run 'process_ecmwf_era5_for_s2p3_rv2.0.py'
 
 ```
 python2.7 process_ecmwf_era5_for_s2p3_rv2.0.py
@@ -238,3 +245,104 @@ ls met_data/*.dat
 are those required to run the model these need to be copied to the /domain and meteorology directories where the model has been set up respectively (see readme for running the model)
 
 ## Setting up and running the model
+
+
+*Hint. You may want to speed things up by creating a RAM disk and making this the temporary location to hold the unzipped met data.
+
+e.g.
+```
+sudo mkdir /mnt/ramdisk
+sudo mount -t tmpfs -o size=3g tmpfs /mnt/ramdisk
+then your temp location is  /mnt/ramdisk:
+```
+*
+
+Move into the 'model' directory within S2P3Rv2.0
+
+cd S2P3Rv2.0/model
+
+- compile code
+
+```
+gfortran -Ofast -o s2p3_rv2.0 s2p3_rv2.0.f90
+```
+
+s2p3_rv2.0 should now be a working executable
+
+- copying in the forcing data
+
+We want to copy the forcing files created above and listed in the section 'Summary of the forcing files' to the the location from which the model will access them. This may be a different machine if running on a compute server or HPC.
+
+If working on a simple computer and following teh instructions exactly as above this would involve:
+
+*Where **my_path** is the path to the directory where you cloned the repository from github, s12_m2_s2_n2_h_map.dat is the domain file you produced in the sectoin titled 'Producing the domain file', initial_nitrate.dat is the file you produced in the section titled 'Producing the nutrient initialisation file' and the files starting with the name 'met_data_' are those produced under the section titled 'Producing the meteorological files'.*
+
+*Where **my_meterology_path** is location you specified as the 'output_directory' in the script with a name like 'process_x_for_s2p3_rv2.0.py', and **my_met_path_for_model_runs** is the location you want the model to read the files from.*
+
+*Note that there is no need to copy these files, you could just point to the location where they were produced if not undertaking muyltiple different runs.*
+
+```
+cp /my_path/S2P3Rv2.0/forcing/s12_m2_s2_n2_h_map.dat /my_path/S2P3Rv2.0/model/domain/
+cp /my_path/S2P3Rv2.0/forcing/initial_nitrate.dat /my_path/S2P3Rv2.0/model/domain/
+cp -r my_meterology_path/met_data_*.tar.gz my_met_path_for_model_runs/
+ 
+```
+
+scp example_location_1/s2p3_rv2.0_forcing/initial_nitrate.dat example_location_2/s2p3_rv2.0/domain
+
+scp -r example_location_1/s2p3_rv2.0_met_data/met_data_*.tar.gz example_location_2/my_runs_met_data
+
+#running the model
+
+before running you will need to edit at least one line in:
+
+s2p3_rv2.0/main/run_map_parallel.py
+
+Here you must change the line 'base_directory = ...' to point to the s2p3_rv2.0 directory on your computer
+
+You will also probably have to edit the 'met_data_location = ' to point to the locatino you have copied the tar.gz met files to (example_location_2/my_runs_met_data in the example above)
+
+You may also have to create the tempoarry directory which will hold the untarred and gziped met files (e.g. met_data_temporary_location = base_directory+'met/spatial_data/')
+
+You may well also want to change the number or processors, output file names etc. here
+
+Under the heading 'Variables to output from model' you can select which variables to output from the model, see the model output section below.
+
+then run with either:
+
+python2.7 run_map_parallel.py
+
+OR if you are running on a cluster/supercomputer with a batch system, you may be able to use a runscript like runscript_parallel and submit with something like:
+
+msub runscript_parallel
+
+#model output
+
+The model output will be in the directory specified wiuthin run_map_parallel.py, with the default output file being output_map
+This contains in columns, left to right: day number, longitude, latitude, then the variables you have specified in run_map_parallel.py in the order specified under the heading 'Variables to output from model'.
+
+Note changing this will necessitate changes to the processing into netcdf script here https://bitbucket.org/paulhalloran/s2p3_rv2.0_processing
+
+
+############################################################
+# Processing/plotting the output                           #
+############################################################
+
+see https://bitbucket.org/paulhalloran/s2p3_rv2.0_processing
+
+Scripts and instructions are provided to convert the output into netcdf format and plot the output
+
+
+############################################################
+# Points to note                                           #
+############################################################
+
+############################################################
+# Updates                                                  #
+############################################################
+
+To avoid overly hot SSTs in some tropical areas, changes being made to prescribe downwelling shortwave and longwave radiation. The net downward shortwave at the surface is used directly by the model, but the longwave requires a minor change to the model code. I've changed:
+hl=0.985*5.67d-8*(surf_temp**4.0)*(0.39-0.05*vap**0.5)*(1.0-0.6d-4*cloud(idmet)**2.0)   !original codes Longwave
+to
+hl=0.985*5.67d-8*(surf_temp**4.0)-lw_rad_down0  !Longwave
+note, I'm not sure why humiditry would have been used in tgeh original calculation. Is this a way at getting towards skin temperature from tghe model's surface level temperature, or accounting for absorbtion by non-cloud water vapour?

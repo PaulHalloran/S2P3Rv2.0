@@ -133,7 +133,7 @@ lat_north = 65.0
 cube_2000_2005_region = extract_geographical_area(cube_2000_2005,lon_west,lon_east,lat_south,lat_north)
 plot_map_timemean(cube_2000_2005_region)
 
-# Extract a region then create a timeseries from mapped data by perfroming a weighted area average, then plot
+# Extract a region then create a timeseries from mapped data by performing a weighted area average, then plot
 lon_west = 0.0
 lon_east = 10.5
 lat_south = 55.0

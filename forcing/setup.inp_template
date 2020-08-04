@@ -1,0 +1,65 @@
+DATA/Model_atlas           ! 1. tidal model control file
+lat_lon_time               ! 2. latitude/longitude/<time> file
+replace_this                          ! 3. z/U/V/u/v
+replace_tidal_constit                           ! 4. tidal constituents to include
+AP                         ! 5. AP/RI
+geo                        ! 6. oce/geo
+1                          ! 7. 1/0 correct for minor constituents
+and_swap_this                 ! 8. output file (ASCII)
+
+
+Comments on lines 1-7
+
+1. Tidal model control file (ASCII, supplied with the model, starting
+   from "Model_") contains AT LEAST 3 lines:
+
+   elevation model file name
+   transport model file name
+   bathymetry grid file name
+   {name of function to convert x,y to lon,lat}
+
+   Leave line 1 blank, if are not sure which model to use. In this case
+   all models from "model.list" are checked. File "./model.list" should
+   contain all your DATA/Model_* files and is done as:
+
+   ls -1 DATA/Model_*>model.list
+
+   Please have all Model_* files ready in subdirectory DATA
+
+   Please show FULL path to the model files in the "Model_*" file
+   unless they are located in /DATA (download default).
+
+   4th line in Model_* file is used ONLY for models calculated on
+   uniform grid in km. Converting functions are provided with
+   current version of OTPS. Please upgrade OTPS if a function is
+   missing.
+
+2. latitude, longitude and time file is an ASCII file, consisting
+   either of 2 OR 8 columns:
+   latitude (degrees) longitude (degrees) [yyyy mm dd hh mm ss]
+   Common sign convention:
+   lat>0 - degrees North, lon>0 - degrees East
+   lat<0 - degrees South, lon<0 - degrees West
+   [yyyy mm dd hh mm ss] - year month day hour seconds
+   These 6 columns are needed for tide predictions only.
+   You may leave them empty if only extracting HC
+
+3. Extract HC/predict tide for:
+   z/U/V/u/v - elevation(m) /WE transport(m^2/s)/ SN transport(m^2/s)/
+                             WE velocity (cm/s) / SN velocity (cm/s)
+
+4. Constituent names should be in LOWER case and separated by comma.
+   Leave the line blank, if ALL model constituents are included
+
+5. AP/RI - output amplitude and phase(GMT) OR real/imaginary parts.
+           Only used when extracting HC.
+           May leave blank, if predicting tide.
+
+6. Only needed for tide prediction. 1/0 - Do/Not correct for the minor
+   constituents defined in weights.h. Only works for 8 constituents:
+   m2,s2,n2,k2,k1,o1,p1,q1
+
+7. oce/geo - extract ocean/geocentric HC for elevations only.
+            Geocentric tide is appropriate for comparison to or
+            correction of altimetry data.
+            May leave blank if not z on line 3.

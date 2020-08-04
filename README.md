@@ -64,9 +64,15 @@ cd S2P3Rv2.0
 
 ### Setting up and generating forcing data
 
+Move into the forcing directory
+
+```
+cd forcing
+```
+
 Tidal slope is an important forcing to the model. The forcing scripts generate this using the Oregon State University TPOX tidal data (https://www.tpxo.net/home)
 
-First ownload OSU data and software:
+First download OSU data and software:
 
 download the TPXO9.1 bin file
 

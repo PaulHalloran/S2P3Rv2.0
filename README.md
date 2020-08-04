@@ -39,7 +39,7 @@ conda install -c conda-forge iris
 conda install -c conda-forge iris-grib
 conda install matplotlib
 conda install -c conda-forge gridfill
-conda install -c conda-forge cdsapi 
+conda install -c conda-forge cdsapi
 ```
 
 - CDO (https://code.mpimet.mpg.de/projects/cdo/)
@@ -198,7 +198,7 @@ Data can be retrieved automatically by running the python script 'example_ecmwf_
 python2.7 example_ecmwf_era5_retrieval_script_netcdf.py
 ```
 
-Note that you may wish you edit the list of years under each 'year' heading to download more or less data. 
+Note that you may wish you edit the list of years under each 'year' heading to download more or less data.
 
 - Once the data is downloaded, iedit the file process_ecmwf_era5_for_s2p3_rv2.0.py to specify the:
       - spatial resolution you want the atm. forcing data to be at
@@ -216,7 +216,7 @@ python2.7 process_ecmwf_era5_for_s2p3_rv2.0.py
 ###  Producing the nutrient initialisation file
 
 Download the gridded netcdf version of the World Ocean Atlas nitrate data from here: https://www.nodc.noaa.gov/cgi-bin/OC5/woa13/woa13oxnu.pl
-- These instructions assume you are using teh annual mean file: n00_01.nc, but it may be advisable to use the file pertaining to the winter season in the hemisphere of your simulation, because this is what the model is expecting 
+- These instructions assume you are using teh annual mean file: n00_01.nc, but it may be advisable to use the file pertaining to the winter season in the hemisphere of your simulation, because this is what the model is expecting
 
 Edit the strings on the right hand side of the first three lines of 'initialisation_nitrate.py'. These should point to the chosen output file name for the nutrient file, the name of the domain file produced above, and the location of the World Ocean Atlas data respectively.
 
@@ -284,7 +284,7 @@ If working on a simple computer and following teh instructions exactly as above 
 cp /my_path/S2P3Rv2.0/forcing/s12_m2_s2_n2_h_map.dat /my_path/S2P3Rv2.0/model/domain/
 cp /my_path/S2P3Rv2.0/forcing/initial_nitrate.dat /my_path/S2P3Rv2.0/model/domain/
 cp -r my_meterology_path/met_data_*.tar.gz my_met_path_for_model_runs/
- 
+
 ```
 
 #running the model
@@ -305,10 +305,10 @@ num_procs = mp.cpu_count() # this will use all available processors. Note that o
 output_directory = '/some_directory/'  # the directory where you want the output from the model to be written
 
 output_file_name = 'a_filename_to_identify_the_output_from_this_specific_simulation'
-meterological_file_name = 'meterological_data' # leave this as it is unless you have changed the code described within the 'Producing the meteorological files' section 
+meterological_file_name = 'meterological_data' # leave this as it is unless you have changed the code described within the 'Producing the meteorological files' section
 domain_file_name = 's12_m2_s2_n2_h_map.dat' # This is the name of the output fine produced by running 'tides_bathymetry.py'
 nutrient_file_name = 'initial_nitrate.dat' # This is the name of the output fine produced by running 'initialisation_nitrate.py'
-executable_file_name = 's2p3_rv2.0' # The is the compiled model executable, i.e. teh righthand side of the line 'gfortran -Ofast -o s2p3_rv2.0 s2p3_rv2.0.f90' run above. 
+executable_file_name = 's2p3_rv2.0' # The is the compiled model executable, i.e. teh righthand side of the line 'gfortran -Ofast -o s2p3_rv2.0 s2p3_rv2.0.f90' run above.
 
 met_data_location = '/my_met_path_for_model_runs/' # The location containing the tar.gz met files (in the format met_data_year.tar.gz). See the line 'cp -r my_meterology_path/met_data_*.tar.gz my_met_path_for_model_runs/' above
 
@@ -323,42 +323,39 @@ write_error_output = False # Change to True for debugging
 
 parallel_processing = True # True if you want to run on more than one processor. A single processor may make some debugging easier.
 
-generate_netcdf_files = True #If True, saves model output as netcdf files. Set to False if you have set write_error_output to True 
+generate_netcdf_files = True #If True, saves model output as netcdf files. Set to False if you have set write_error_output to True
 ```
 
-- Run with either:
+You will also find a list of vaiable names under the heading 'Variables to output from model' in run_map_parallel.py. Set these to 1 if you want to output this variable, or 0 if you do not wish to output this variable.
 
+- Making sure that you are in the '/my_path/s2p3_rv2.0/' directory run the model with either:
+
+```
 python2.7 run_map_parallel.py
+```
 
 OR if you are running on a cluster/supercomputer you may need to submit this with a runscript specific to your batch system. An example using msub is provided in the file 'runscript_parallel'. This woudl be submitted with 'msub runscript_parallel'
 
 #model output
 
-The model output will be in the directory specified wiuthin run_map_parallel.py, with the default output file being output_map
-This contains in columns, left to right: day number, longitude, latitude, then the variables you have specified in run_map_parallel.py in the order specified under the heading 'Variables to output from model'.
+The model output will be in the directory specified for the 'output_directory' variable in 'run_map_parallel.py'.
 
-Note changing this will necessitate changes to the processing into netcdf script here https://bitbucket.org/paulhalloran/s2p3_rv2.0_processing
+If you have specified netcdf output you will have a file for each year and each specified variable.
 
-
-############################################################
-# Processing/plotting the output                           #
-############################################################
-
-see https://bitbucket.org/paulhalloran/s2p3_rv2.0_processing
-
-Scripts and instructions are provided to convert the output into netcdf format and plot the output
+If you have chosen not to output netcdf files the model will generate a csv file for each year containing form left to right columns of day number, longitude, latitude, then the variables you have specified in run_map_parallel.py in the order specified under the heading 'Variables to output from model'.
 
 
-############################################################
-# Points to note                                           #
-############################################################
+## plotting the output
+These instructions assume that you have produced output as netcdf files
 
-############################################################
-# Updates                                                  #
-############################################################
+A single script ('processing/basic_plots.py') is supplied which provides an example of how to read the model output into python, and multiple examples of how to process and plot the data. These examples include:
+- Plot a contourmap of all data averaged along the time dimension
+- Extract data falling between certain years
+- Extract data falling between certain latitude/longitude bounds
+- Create a timeseries from mapped data by performing a weighted area average, then plot
+- Concert daily data into monthly, seasonal and annual averaged data
 
-To avoid overly hot SSTs in some tropical areas, changes being made to prescribe downwelling shortwave and longwave radiation. The net downward shortwave at the surface is used directly by the model, but the longwave requires a minor change to the model code. I've changed:
-hl=0.985*5.67d-8*(surf_temp**4.0)*(0.39-0.05*vap**0.5)*(1.0-0.6d-4*cloud(idmet)**2.0)   !original codes Longwave
-to
-hl=0.985*5.67d-8*(surf_temp**4.0)-lw_rad_down0  !Longwave
-note, I'm not sure why humiditry would have been used in tgeh original calculation. Is this a way at getting towards skin temperature from tghe model's surface level temperature, or accounting for absorbtion by non-cloud water vapour?
+At the very least edit the three lines below the line 'Edit the three lines...' to point the script to the model output you wish to plot, then run with:
+```
+python2.7 -i /my_path/s2p3_rv2.0/processing/vim basic_plots.py
+```

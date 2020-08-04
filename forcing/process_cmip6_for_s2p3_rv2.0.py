@@ -34,18 +34,20 @@ from scipy.spatial import KDTree
 ##################################
 
 
-min_depth_lim = 10.0
+min_depth_lim = 4.0
 max_depth_lim = 50.0
 
-start_year = 1970
+start_year = 2015
 end_year = 2100
 
+cmip_models = ['CanESM5'] # note that this should match exactly the model name used in the filename
+# experiments = ['historical','ssp119','ssp585'] # note that this shoudl match exactly the experiment name used in the filename
+#experiments = ['historical','ssp585'] # note that this shoudl match exactly the experiment name used in the filename
+experiments = ['ssp119'] # note that this shoudl match exactly the experiment name used in the filename
+my_suffix = '_r1i1p1f1_gn_*.nc' #e.g. '_all.nc'
+my_suffix_windspeed_output = '_r1i1p1f1_gn_allyears.nc' #e.g. '_all.nc'
 
-# SOME LON LATS DON'T HAVE METEROLOGY: /data/NAS-ph290/ph290/cmip5/for_s2p3_rv2.0/merged/
-# This appears to be at the edge of the dataset... maybe extract a larger regoin than is required
-
-
-domain_file = 's12_m2_s2_n2_h_map.dat'
+domain_file = 's12_m2_s2_n2_h_map_minus29tominus10_142to156_atpoint1.dat'
 # Note, the script will fail with the error 'OverflowError: cannot serialize a string larger than 2 GiB'
 # if this file is too big. For example, a global 4km dataste is too big, but 4km from 30S to 30N is OK
 # The limitation is that the data has to be pickled to be run in a parallellised way, and currently
@@ -54,8 +56,8 @@ domain_file = 's12_m2_s2_n2_h_map.dat'
 #Specify where the ncep data is stored on your computer
 #directory_containing_files_to_process = '/data/NAS-ph290/ph290/cmip5/for_s2p3_rv2.0/merged/'
 # directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_20C/output/'
-directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_era5/day_mean/region_of_interest/'
-output_directory = '/data/BatCaveNAS/ph290/ecmwf_era5/day_mean/output_processed/global_tropics/'
+directory_containing_files_to_process = '/data/BatCaveNAS/ph290/cmip6/for_s2p3/'
+output_directory = '/data/BatCaveNAS/ph290/cmip6/for_s2p3/output_processed/gbr_hist_119/'
 
 #value to set the minimum wind value to to avoid build up of heat in high cloud, low wind speed situations
 # min_wind_value = 2.0
@@ -112,6 +114,34 @@ def huss_to_hurs(huss,tas,psl):
     rh = vap/sat_vap
     return rh
 
+def interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,k):
+    single_input_variable = input_variables[k]
+    cube_year = cubes[k]
+    znew_tmp[:] = np.nan
+    print 'processing '+single_input_variable
+    for j in range(np.shape(cube_year)[0]):
+        # met_cubes[single_input_variable]['day']={}
+        # progress_bar(j,np.shape(cube_year)[0])
+        # different interpolation options commented out
+        # f = interpolate.interp2d(cube_year.coord('longitude').points, cube_year.coord('latitude').points, cube_year[j].data, kind='linear')
+        # znew[j,k,:] = [f(sample_points_lat_lon['lon'].values[i], sample_points_lat_lon['lat'].values[i])[0] for i in range(len(sample_points_lat_lon['lat'].values))]
+        #https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RectBivariateSpline.html
+        f = RectBivariateSpline(cube_year.coord('latitude').points,cube_year.coord('longitude').points, cube_year[j].data)
+        znew_tmp[j,:] = [f(sample_points_lat_lon['lat'].values[i], sample_points_lat_lon['lon'].values[i])[0] for i in range(len(sample_points_lat_lon['lat'].values))]
+        #https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html
+        # f = interp.Rbf(X,Y, cube_year[j].data, function='linear', smooth=0)  # default smooth=0 for interpolation
+        # znew[j,k,:] = [f(sample_points_lat_lon['lat'].values[i], sample_points_lat_lon['lon'].values[i]) for i in range(len(sample_points_lat_lon['lat'].values))]
+    # return [znew_tmp.reshape(j*len(sample_points_lat_lon['lat'].values))]
+    return [[znew_tmp]]
+
+def ws_data_func(u_data, v_data):
+    return np.sqrt( u_data**2 + v_data**2 )
+
+
+def ws_units_func(u_cube, v_cube):
+    if u_cube.units != getattr(v_cube, 'units', u_cube.units):
+        raise ValueError("units do not match")
+    return u_cube.units
 
 ##################################
 # Other things that need to be defined, but probably not changed
@@ -139,7 +169,8 @@ df = pd.read_fwf(domain_file,names=['lon','lat','t1','t2','t3','t4','t5','t6','t
 
 print 'completed reading in lats and lons from domain file'
 
-input_variables = ['vas','uas','clt','hurs','tas','psl','wind_speed','rsds','rlds']
+input_variables = ['vas','uas','clt','hurs','tas','psl','rsds','rlds','wind_speed']
+# /clt,hurs,psl,rlds,rsds,tas,uas,vas | r1i1p1f1 | CMIP6 | historical | UKESM1-0-LL
 # North/South wind vector, East/West wind vector, Total cloud cover, relative humidity, 2m air temperature, sea level pressure, wind speed (but calculated here), downwelling shortwave, downwelling longwave
 #conversion specific to relative: http://www.whoi.edu/page.do?pid=30578
 
@@ -157,147 +188,120 @@ input_variables2 = np.array(input_variables).copy()
 # input_variables2 = np.append(input_variables2,'wind_speed')
 input_variables2 = np.append(input_variables2,'wind_direction')
 
-cube = iris.load_cube(directory_containing_files_to_process + cmip_model + '_' + input_variables[0]+'_'+experiment+'_all.nc')
-try:
-    iris.coord_categorisation.add_year(cube, 'time', name='year')
-except:
-    pass
-cube_year = cube[np.where(cube.coord('year').points == start_year)]
-znew = np.zeros([np.shape(cube_year)[0],len(input_variables2),len(sample_points_lat_lon['lat'].values)])
-znew_tmp = np.zeros([np.shape(cube_year)[0],len(sample_points_lat_lon['lat'].values)])
+for cmip_model in cmip_models:
+    for experiment in experiments:
 
-tmp = sample_points_lat_lon['lon'].values
-tmp[np.where(tmp < 0.0)] = 360.0 + tmp[np.where(tmp < 0.0)]
-sample_points_lat_lon['lon'] = tmp
-# X,Y=np.meshgrid(cube_year.coord('latitude').points,cube_year.coord('longitude').points)
+        cube = iris.load_cube(directory_containing_files_to_process + input_variables[0]+'_day_'+cmip_model+'_'+experiment+my_suffix)
 
-
-
-def interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,k):
-    single_input_variable = input_variables[k]
-    cube_year = cubes[k]
-    znew_tmp[:] = np.nan
-    print 'processing '+single_input_variable
-    for j in range(np.shape(cube_year)[0]):
-        # met_cubes[single_input_variable]['day']={}
-        # progress_bar(j,np.shape(cube_year)[0])
-        # different interpolation options commented out
-        # f = interpolate.interp2d(cube_year.coord('longitude').points, cube_year.coord('latitude').points, cube_year[j].data, kind='linear')
-        # znew[j,k,:] = [f(sample_points_lat_lon['lon'].values[i], sample_points_lat_lon['lat'].values[i])[0] for i in range(len(sample_points_lat_lon['lat'].values))]
-        #https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RectBivariateSpline.html
-        f = RectBivariateSpline(cube_year.coord('latitude').points,cube_year.coord('longitude').points, cube_year[j].data)
-        znew_tmp[j,:] = [f(sample_points_lat_lon['lat'].values[i], sample_points_lat_lon['lon'].values[i])[0] for i in range(len(sample_points_lat_lon['lat'].values))]
-        #https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html
-        # f = interp.Rbf(X,Y, cube_year[j].data, function='linear', smooth=0)  # default smooth=0 for interpolation
-        # znew[j,k,:] = [f(sample_points_lat_lon['lat'].values[i], sample_points_lat_lon['lon'].values[i]) for i in range(len(sample_points_lat_lon['lat'].values))]
-    # return [znew_tmp.reshape(j*len(sample_points_lat_lon['lat'].values))]
-    return [[znew_tmp]]
-
-
-cwd = os.getcwd()
-
-def ws_data_func(u_data, v_data):
-    return np.sqrt( u_data**2 + v_data**2 )
-
-def ws_units_func(u_cube, v_cube):
-    if u_cube.units != getattr(v_cube, 'units', u_cube.units):
-        raise ValueError("units do not match")
-    return u_cube.units
-
-# test if windspeed file_exists, if not produce it
-exists = os.path.isfile(directory_containing_files_to_process + cmip_model + '_wind_speed_'+experiment+'_all.nc')
-if not exists:
-    u_cube = iris.load_cube(directory_containing_files_to_process + cmip_model + 'uas'+experiment+'_all.nc')
-    v_cube = iris.load_cube(directory_containing_files_to_process + cmip_model + 'vas'+experiment+'_all.nc')
-    ws_ifunc = iris.analysis.maths.IFunc(ws_data_func,ws_units_func)
-    ws_cube = ws_ifunc(u_cube, v_cube, new_name='wind speed')
-    iris.save(ws_cube, directory_containing_files_to_process + cmip_model + '_wind_speed_'+experiment+'_all.nc')
-
-for year in range(start_year,end_year+1):
-    print 'processing year ',year
-    cubes = []
-    cube_data=[]
-    for k in range(len(input_variables)):
-        single_input_variable = input_variables[k]
-        print 'loading data for '+single_input_variable
-        cube = iris.load_cube(directory_containing_files_to_process + cmip_model + '_' + single_input_variable+'_'+experiment+'_all.nc')
+        # rsds_day_CanESM5_ssp585_r1i1p1f1_gn_20150101-21001231.nc
         try:
             iris.coord_categorisation.add_year(cube, 'time', name='year')
         except:
             pass
-        iris.coord_categorisation.add_year(cube, 'time', name='year')
-        cube_year = cube[np.where(cube.coord('year').points == year)]
-        cube_data.append(cube_year.data)
-        cubes.append(cube_year)
-    #fill land grid boxes with values from nearest ocean grid box to avoid (e.g.) anomalously low winds speeds in some coastal grid boxes.
-    mask_files = glob.glob(directory_containing_files_to_process + 'sftlf_fx_'+cmip_model+'_*.nc')
-    if len(mask_files) == 0:
-        print 'missing land-sea fraction file, variable sftlf, can not replace under land points with nearest under sea point'
-    else:
-        mask_file = mask_files[0] # select just one file if more have been downloaded
-        mask_cube = iris.load_cube(mask_file)
-        cubes = land_fill(mask_cube,cubes)
-    znew = np.zeros([np.shape(cube_year)[0],len(input_variables2),len(sample_points_lat_lon['lat'].values)])
-    znew_tmp = np.zeros([np.shape(cube_year)[0],len(sample_points_lat_lon['lat'].values)])
-    znew[:] = np.NAN
-#    num_procs = mp.cpu_count()
-#    pool = mp.Pool(processes = np.min([6,num_procs]))
-#    func = partial(interpolate_forcing_data, input_variables,sample_points_lat_lon,znew_tmp,cubes)
-#    results = pool.map(func, range(len(input_variables)))
-#    znew[:,0:len(input_variables),:] = np.moveaxis(np.array(results)[:,0,0,:,:],1,0)
-    znew[:,0,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,0))[0,0,:,:]
-    znew[:,1,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,1))[0,0,:,:]
-    znew[:,2,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,2))[0,0,:,:]
-    znew[:,3,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,3))[0,0,:,:]
-    znew[:,4,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,4))[0,0,:,:]
-    znew[:,5,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,5))[0,0,:,:]
-    znew[:,6,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,6))[0,0,:,:]
-    znew[:,7,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,7))[0,0,:,:]
-    znew[:,8,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,8))[0,0,:,:]
-    #wind speed, using pythagoras (square root of the sum of the squares of the x and y vector give teg lenth of the 3rd side of the triangle)
-    # znew[:,np.where(input_variables2 == 'wind_speed')[0],:] = np.sqrt(np.square(znew[:,np.where(input_variables2 == 'uas')[0],:]) + np.square(znew[:,np.where(input_variables2 == 'vas')[0],:]))
-    #wind direction calculated using the function arctan2, then converted from radians to degrees
-    znew[:,np.where(input_variables2 == 'wind_direction')[0],:] = np.rad2deg((np.arctan2(znew[:,np.where(input_variables2 == 'uas')[0],:],znew[:,np.where(input_variables2 == 'vas')[0],:])) + np.pi)
-    #setting winds speeds below 2m/s to 2m/s to avoid issues with low wind speeds from predominantly land grid points
-    # tmp = znew[:,np.where(input_variables2 == 'wind_speed')[0],:]
-    # tmp2 = np.where(tmp < min_wind_value)
-    # if not tmp2[0].size == 0:
-    #     tmp[tmp2] = min_wind_value
-    #     znew[:,np.where(input_variables2 == 'wind_speed')[0],:] = tmp
-    znew[:,np.where(input_variables2 == 'psl')[0],:] /= 100.0
-    znew[:,np.where(input_variables2 == 'tas')[0],:] -= 273.15
-    print 'writing met data out'
-    for u,longitude_point in enumerate(sample_points_lat_lon['lon'].values):
-        latitude_point = sample_points_lat_lon['lat'].values[u]
-        progress_bar(u,len(sample_points_lat_lon['lon'].values))
-        # for v,latitude_point in enumerate(sample_points_lat_lon['lat'].values[0:500]):
-        # delete.append(str(np.round(latitude_point,4))+str(np.round(longitude_point,4)))
-        # delete2.append(str(int(latitude_point*10000))+str(int(longitude_point*10000)))
-        # process the read-in data and get in the right format for output
-        #To make things neater, we putting the data, which has so far been stored in a dictionary into a pandas dataframe
-        #Once in this format it just makes other thinsg we may want to do easier. See https://www.tutorialspoint.com/python_pandas/python_pandas_dataframe.htm
-        df2 = pd.DataFrame(data=znew[:,:,u],columns = input_variables2)
-        #Essentially range(1, len(df) + 1) makes a list of numbers from 1 to x, where x is the length of the dataframe (the len(df) bit), i.e. the length of the meterological data we have
-        #the ''[format(x, ' 5d') for x in r...' bit just takes each of those numbers one by one and formats them so istead of bineg '1', '2'... '10' etc. then are '    1', '    2'... '   10' etc. so that the colums line up correctly in the output file
-        #This data is then stored in a new column in the dataframe, called 'day_number'
-        df2['day_number'] = [format(x, ' 5d') for x in range(1, len(df2) + 1)]
-        #The met file requires data is all to two decimal places, so the line below rounds all of the data to two decimal places.
-        df2 = df2.round(2)
-        ##################################
-        # Write the data out to the file
-        ##################################
-        #this line simply writes out the olumns we are intersted in, in the order we are intersted in, in the firmat we are intersted in (2 decomal places, 10 characters between columns) to the file we specified at the start
-        np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','clt','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
-        #units are wind_speed m/s, wind_direction degrees, clt %, tas deg C, psl hPa, hurs %
-        #approx values are:     1      0.50     41.25     39.44     26.28   1006.35     80.34
-    # pool.close()
-    #tar and gzip the output files for each year:
-    os.chdir(output_directory)
-    names = [os.path.basename(x) for x in glob.glob(output_filename+'*.dat')]
-    tar = tarfile.open('met_data_'+str(year)+'.tar.gz', 'w:gz')
-    for name in names:
-        tar.add(name)
-    tar.close()
-    #remove the files that have now been tar.gzped
-    [os.remove(f) for f in names]
-    os.chdir(cwd)
+        cube_year = cube[np.where(cube.coord('year').points == start_year)]
+        znew = np.zeros([np.shape(cube_year)[0],len(input_variables2),len(sample_points_lat_lon['lat'].values)])
+        znew_tmp = np.zeros([np.shape(cube_year)[0],len(sample_points_lat_lon['lat'].values)])
+
+        tmp = sample_points_lat_lon['lon'].values
+        tmp[np.where(tmp < 0.0)] = 360.0 + tmp[np.where(tmp < 0.0)]
+        sample_points_lat_lon['lon'] = tmp
+        # X,Y=np.meshgrid(cube_year.coord('latitude').points,cube_year.coord('longitude').points)
+
+        cwd = os.getcwd()
+
+        # test if windspeed file_exists, if not produce it
+        exists = os.path.isfile(directory_containing_files_to_process + 'wind_speed'+'_day_'+cmip_model+'_'+experiment+my_suffix)
+        if not exists:
+            u_cube = iris.load_cube(directory_containing_files_to_process + 'uas'+'_day_'+cmip_model+'_'+experiment+my_suffix)
+            v_cube = iris.load_cube(directory_containing_files_to_process + 'vas'+'_day_'+cmip_model+'_'+experiment+my_suffix)
+            ws_ifunc = iris.analysis.maths.IFunc(ws_data_func,ws_units_func)
+            ws_cube = ws_ifunc(u_cube, v_cube, new_name='wind speed')
+            iris.save(ws_cube, directory_containing_files_to_process + 'wind_speed'+'_day_'+cmip_model+'_'+experiment+my_suffix_windspeed_output)
+
+        for year in range(start_year,end_year+1):
+            print 'processing year ',year
+            cubes = []
+            cube_data=[]
+            for k in range(len(input_variables)):
+                single_input_variable = input_variables[k]
+                print 'loading data for '+single_input_variable
+                cube = iris.load_cube(directory_containing_files_to_process + single_input_variable+'_day_'+cmip_model+'_'+experiment+my_suffix)
+                try:
+                    iris.coord_categorisation.add_year(cube, 'time', name='year')
+                except:
+                    pass
+                cube_year = cube[np.where(cube.coord('year').points == year)]
+                cube_data.append(cube_year.data)
+                cubes.append(cube_year)
+            #fill land grid boxes with values from nearest ocean grid box to avoid (e.g.) anomalously low winds speeds in some coastal grid boxes.
+            mask_files = glob.glob(directory_containing_files_to_process + 'sftlf_fx_'+cmip_model+'_*.nc')
+            if len(mask_files) == 0:
+                print 'missing land-sea fraction file, variable sftlf, can not replace under land points with nearest under sea point'
+            else:
+                mask_file = mask_files[0] # select just one file if more have been downloaded
+                mask_cube = iris.load_cube(mask_file)
+                cubes = land_fill(mask_cube,cubes)
+            znew = np.zeros([np.shape(cube_year)[0],len(input_variables2),len(sample_points_lat_lon['lat'].values)])
+            znew_tmp = np.zeros([np.shape(cube_year)[0],len(sample_points_lat_lon['lat'].values)])
+            znew[:] = np.NAN
+        #    num_procs = mp.cpu_count()
+        #    pool = mp.Pool(processes = np.min([6,num_procs]))
+        #    func = partial(interpolate_forcing_data, input_variables,sample_points_lat_lon,znew_tmp,cubes)
+        #    results = pool.map(func, range(len(input_variables)))
+        #    znew[:,0:len(input_variables),:] = np.moveaxis(np.array(results)[:,0,0,:,:],1,0)
+            znew[:,0,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,0))[0,0,:,:]
+            znew[:,1,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,1))[0,0,:,:]
+            znew[:,2,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,2))[0,0,:,:]
+            znew[:,3,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,3))[0,0,:,:]
+            znew[:,4,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,4))[0,0,:,:]
+            znew[:,5,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,5))[0,0,:,:]
+            znew[:,6,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,6))[0,0,:,:]
+            znew[:,7,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,7))[0,0,:,:]
+            znew[:,8,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,8))[0,0,:,:]
+            #wind speed, using pythagoras (square root of the sum of the squares of the x and y vector give teg lenth of the 3rd side of the triangle)
+            # znew[:,np.where(input_variables2 == 'wind_speed')[0],:] = np.sqrt(np.square(znew[:,np.where(input_variables2 == 'uas')[0],:]) + np.square(znew[:,np.where(input_variables2 == 'vas')[0],:]))
+            #wind direction calculated using the function arctan2, then converted from radians to degrees
+            znew[:,np.where(input_variables2 == 'wind_direction')[0],:] = np.rad2deg((np.arctan2(znew[:,np.where(input_variables2 == 'uas')[0],:],znew[:,np.where(input_variables2 == 'vas')[0],:])) + np.pi)
+            #setting winds speeds below 2m/s to 2m/s to avoid issues with low wind speeds from predominantly land grid points
+            # tmp = znew[:,np.where(input_variables2 == 'wind_speed')[0],:]
+            # tmp2 = np.where(tmp < min_wind_value)
+            # if not tmp2[0].size == 0:
+            #     tmp[tmp2] = min_wind_value
+            #     znew[:,np.where(input_variables2 == 'wind_speed')[0],:] = tmp
+            znew[:,np.where(input_variables2 == 'psl')[0],:] /= 100.0
+            znew[:,np.where(input_variables2 == 'tas')[0],:] -= 273.15
+            print 'writing met data out'
+            for u,longitude_point in enumerate(sample_points_lat_lon['lon'].values):
+                latitude_point = sample_points_lat_lon['lat'].values[u]
+                progress_bar(u,len(sample_points_lat_lon['lon'].values))
+                # for v,latitude_point in enumerate(sample_points_lat_lon['lat'].values[0:500]):
+                # delete.append(str(np.round(latitude_point,4))+str(np.round(longitude_point,4)))
+                # delete2.append(str(int(latitude_point*10000))+str(int(longitude_point*10000)))
+                # process the read-in data and get in the right format for output
+                #To make things neater, we putting the data, which has so far been stored in a dictionary into a pandas dataframe
+                #Once in this format it just makes other thinsg we may want to do easier. See https://www.tutorialspoint.com/python_pandas/python_pandas_dataframe.htm
+                df2 = pd.DataFrame(data=znew[:,:,u],columns = input_variables2)
+                #Essentially range(1, len(df) + 1) makes a list of numbers from 1 to x, where x is the length of the dataframe (the len(df) bit), i.e. the length of the meterological data we have
+                #the ''[format(x, ' 5d') for x in r...' bit just takes each of those numbers one by one and formats them so istead of bineg '1', '2'... '10' etc. then are '    1', '    2'... '   10' etc. so that the colums line up correctly in the output file
+                #This data is then stored in a new column in the dataframe, called 'day_number'
+                df2['day_number'] = [format(x, ' 5d') for x in range(1, len(df2) + 1)]
+                #The met file requires data is all to two decimal places, so the line below rounds all of the data to two decimal places.
+                df2 = df2.round(2)
+                ##################################
+                # Write the data out to the file
+                ##################################
+                #this line simply writes out the olumns we are intersted in, in the order we are intersted in, in the firmat we are intersted in (2 decomal places, 10 characters between columns) to the file we specified at the start
+                np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','clt','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
+                #units are wind_speed m/s, wind_direction degrees, clt %, tas deg C, psl hPa, hurs %
+                #approx values are:     1      0.50     41.25     39.44     26.28   1006.35     80.34
+            # pool.close()
+            #tar and gzip the output files for each year:
+            os.chdir(output_directory)
+            names = [os.path.basename(x) for x in glob.glob(output_filename+'*.dat')]
+            tar = tarfile.open('met_data_'+str(year)+'.tar.gz', 'w:gz')
+            for name in names:
+                tar.add(name)
+            tar.close()
+            #remove the files that have now been tar.gzped
+            [os.remove(f) for f in names]
+            os.chdir(cwd)

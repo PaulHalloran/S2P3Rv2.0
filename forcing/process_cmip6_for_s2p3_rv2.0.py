@@ -47,7 +47,7 @@ experiments = ['ssp119'] # note that this shoudl match exactly the experiment na
 my_suffix = '_r1i1p1f1_gn_*.nc' #e.g. '_all.nc'
 my_suffix_windspeed_output = '_r1i1p1f1_gn_allyears.nc' #e.g. '_all.nc'
 
-domain_file = 's12_m2_s2_n2_h_map_minus29tominus10_142to156_atpoint1.dat'
+domain_file = 's12_m2_s2_n2_h_map.dat'
 # Note, the script will fail with the error 'OverflowError: cannot serialize a string larger than 2 GiB'
 # if this file is too big. For example, a global 4km dataste is too big, but 4km from 30S to 30N is OK
 # The limitation is that the data has to be pickled to be run in a parallellised way, and currently

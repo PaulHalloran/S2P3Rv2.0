@@ -72,49 +72,34 @@ cd forcing
 
 Tidal slope is an important forcing to the model. The forcing scripts generate this using the Oregon State University TPOX tidal data (https://www.tpxo.net/home)
 
-First download OSU data and software:
+To get hold of this you now need to register by following the instructions here: https://www.tpxo.net/tpxo-products-and-registration
+The files you require are grid_tpxo9 and u_tpxo9.v1
+Available within the University of Exeter at https://universityofexeteruk-my.sharepoint.com/:f:/g/personal/p_halloran_exeter_ac_uk/ElYRNQ1oNllArEiHkYU5bSkByTXvNSieTddNXzuK9oTpGA?email=P.Halloran%40exeter.ac.uk&e=RpeqCP
 
-download the TPXO9.1 bin file
 
-```
-wget ftp://ftp.oce.orst.edu/dist/tides/Global/tpxo9.tar.gz
-```
-
-uncompress this file:
-
-```
-tar zxvf tpxo9.tar.gz
-```
-
-get the tidal calculation software
-
-```
-wget ftp://ftp.oce.orst.edu/dist/tides/OTPS2.tar.Z
-```
+get the tidal calculation software: https://drive.google.com/file/d/1FBlS_Xmf6_dnCg1T0t5GSTRTwMjLuA8N/view
 
 uncompress this
 
 ```
-tar zxvf OTPS2.tar.Z
+tar zxvf OTPS.tar.Z
 ```
 
-move the data you have downlaoded into the current working dorectory (ignoring the  warning about 'cannot move...'):
+move the data you have downloaded into the current working directory:
 
 ```
-mv OTPS2/* .
+mv OTPS/* .
 ```
 
-Move the data out of the subdirectory to your working directory:
 
-```
-mv OTPS2/DATA/load_file DATA/
-```
 
 Move our own version of the Model_atlas file (specific to our requirements here) to our data directory
 
 ```
 mv Model_atlas DATA/
 ```
+
+Copy the files grid_tpxo9 and u_tpxo9.v1 obtained above into the DATA directory
 
 Compile the OSU tidal model code (using the three lines below), not worrying about 'warning' messages:
 
@@ -127,7 +112,7 @@ gfortran -o extract_local_model -fconvert=swap -frecord-marker=4 extract_local_m
 ### Producing the domain file
 This file contains the latitude, longitude, tidal and bathymetry data for the simulation's domain
 
-- Obtain your chosen bathymetry file in netcdf format. The global simulations in Halloran et al., 2020 use the ETOPO1 product (obtained from https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/netcdf/)
+- Obtain your chosen bathymetry file in netcdf format. The global simulations in Halloran et al., 2020 use the ETOPO1 product ETOPO1_Bed_g_gmt4.nc (obtained from https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/netcdf/)
 
 edit the first 7 lines in tides_bathymetry.py to specify the domain you want the model to run for and the horizonal resolution
 (lines copied below for illustration)
@@ -150,38 +135,38 @@ produce the domain file by tides_bathymetry.py
 python2.7 tides_bathymetry.py
 ```
 
-You can check the output has been writen correctly by ensuring the file s12_m2_s2_n2_h_map.dat contains non-zero data
+You can check the output has been written correctly by ensuring the file s12_m2_s2_n2_h_map.dat contains non-zero data
 
 ###  Producing the meteorological files
 
-The meterological frocing can come from a variety ofatmopsheric models/reanalyses. Here we provide scripts and instructions for generating this forcing from the ECMWF ERA5 product and from CMIP models
+The meteorological forcing can come from a variety of atmospheric models/reanalyses. Here we provide scripts and instructions for generating this forcing from the ECMWF ERA5 product and from CMIP models
 
 ####  OPTION 1: Producing the meteorological files from CMIP
 
-make a directory to hold the meterological forcing data:
+make a directory within S2P3Rv2.0 to hold the meterological forcing data:
 
 ```
-mkdir met_data
+mkdir ../met_data
 ```
 
-The forcing data can be downloaded from the cmip5 archive (https://esgf-node.llnl.gov/projects/esgf-llnl/)
+The forcing data can be downloaded from the cmip6 archive (https://esgf-node.llnl.gov/projects/esgf-llnl/)
 
 The required variables are, U and V surface winds, specific humidity (from which we calculate relative humidity), surface air temperature, sea-level pressure, net downwelling shortwave, downwelling longwave and land fraction
 
-The CMIP5 variable names for these are:
-vas, uas, huss, tas, psl, rsds, rlds, sftlf
+The CMIP variable names for these are:
+vas, uas, hurs, tas, psl, rsds and rlds at daily frequency and sftlf as a fixed frequency file
 
-Note, the land fraction is used to replace values from atm. grid cells over land with the value from the nearest neighbouring over-ocean cell. This has been implemented to avoid (e.g.) anomalously low wind speeds arising from high terrestrial surface roughness occuring over the sea.
+Note, the land fraction is used to replace values from atm. grid cells over land with the value from the nearest neighbouring over-ocean cell. This has been implemented to avoid (e.g.) anomalously low wind speeds arising from high terrestrial surface roughness occurring over the sea.
 
 They must all be downloaded at daily frequency. At present the code has been set up only to work with a single ensemble member.
 
 once downloaded, the multiple files for each variable within a model must be merged into a single file with a name in the format MODELNAME_VARIABLENAME_EXPERIMENT_NAME_ENSEMBLENAME.nc. This can be done with cdo, e.g.
 
 ```
-cdo mergetime tas*MIROC-ESM_historical_r1i1p1*.nc MIROC-ESM_tas_historical_all.nc
+cdo mergetime tas*MIROC-ESM_historical_r1i1p1*.nc tas_MIROC-ESM_historical_all.nc
 ```
 
-edit process_cmip6_for_s2p3_rv2.0.py or process_cmip5_for_s2p3_rv2.0.py to specify the:
+edit process_cmip6_for_s2p3_rv2.0.py to specify the:
  - spatial resolution you want the atm. forcing data to be at
  - the years for which you want to perform the run
  - the name of the cmip model you want to process (cmip_model = )

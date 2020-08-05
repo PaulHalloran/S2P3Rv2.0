@@ -1,6 +1,6 @@
 #note, latitudes go from -90 to 90
 #minimum means furthest South
-minimum_latitude = -50
+minimum_latitude = 50
 maximum_latitude = 60
 latitude_resolution = 0.2 #degrees
 

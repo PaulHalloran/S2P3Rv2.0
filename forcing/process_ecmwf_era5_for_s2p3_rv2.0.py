@@ -39,10 +39,10 @@ from scipy.spatial import KDTree
 
 
 min_depth_lim = 10.0
-max_depth_lim = 30.0
+max_depth_lim = 50.0
 
 start_year = 2000
-end_year = 2001
+end_year = 2000
 
 
 domain_file = 's12_m2_s2_n2_h_map.dat'
@@ -55,8 +55,8 @@ domain_file = 's12_m2_s2_n2_h_map.dat'
 #directory_containing_files_to_process = '/data/NAS-ph290/ph290/cmip5/for_s2p3_rv2.0/merged/'
 # directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_20C/output/'
 # directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_era5/day_mean/region_of_interest_UK/'
-directory_containing_files_to_process = '/data/local_ssd/ph290/test/'
-output_directory = '/data/local_ssd/ph290/test/processed/'
+directory_containing_files_to_process = '../sampledata/'
+output_directory = '../met_data/'
 
 #value to set the minimum wind value to to avoid build up of heat in high cloud, low wind speed situations
 # min_wind_value = 2.0
@@ -288,7 +288,7 @@ for year in range(start_year,end_year+1):
         # Write the data out to the file
         ##################################
         #this line simply writes out the olumns we are intersted in, in the order we are intersted in, in the firmat we are intersted in (2 decomal places, 10 characters between columns) to the file we specified at the start
-        np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','tas','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
+            np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','tas','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
         #units are wind_speed m/s, wind_direction degrees, clt (now redundant) %, tas deg C, psl hPa, hurs %
         #approx values are:     1      0.50     41.25     39.44     26.28   1006.35     80.34
     # pool.close()

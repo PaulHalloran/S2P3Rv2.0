@@ -75,7 +75,7 @@ include_speed3_output=0	# depth-mean current speed
 columns = [include_depth_output,include_temp_surface_output,include_temp_bottom_output,include_chlorophyll_surface_output,include_phyto_biomass_surface_output,include_phyto_biomass_bottom_output,include_PAR_surface_output,include_PAR_bottom_output,include_windspeed_output,include_stressx_output,include_stressy_output,include_Etide_output,include_Ewind_output,include_u_mean_surface_output,include_u_mean_bottom_output,include_grow1_mean_surface_output,include_grow1_mean_bottom_output,include_uptake1_mean_surface_output,include_uptake1_mean_bottom_output,include_tpn1_output,include_tpg1_output,include_speed3_output]
 column_names_all = ['depth','surface temperature','bottom temperature','surface chlorophyll','surface phyto biomass','bottom phyto biomass','surface PAR','bottom PAR','windspeed','stress_x','stress_y','Etide','Ewind','u_mean_surface','u_mean_bottom','grow1_mean_surface','grow1_mean_bottom','uptake1_mean_surface','uptake1_mean_bottom','tpn1','tpg1','speed3']
 
-
+base_directory = base_directory + 'model/'
 
 ##################################################
 # functions used by the script                   #

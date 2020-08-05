@@ -1,14 +1,14 @@
 #note, latitudes go from -90 to 90
 #minimum means furthest South
-minimum_latitude = 50
-maximum_latitude = 60
-latitude_resolution = 0.2 #degrees
+minimum_latitude = 10
+maximum_latitude = 14
+latitude_resolution = 0.1 #degrees
 
 #note, longitudes go from -180 to 180
 #minimum means furthest West
-minimum_longitude = 0.0
-maximum_longitude = 10
-longitude_resolution = 0.2 #degrees
+minimum_longitude = 90
+maximum_longitude = 94
+longitude_resolution = 0.1 #degrees
 
 location_of_bathymetry_file =  './ETOPO1_Bed_g_gmt4.nc'
 

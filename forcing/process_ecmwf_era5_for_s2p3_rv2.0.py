@@ -288,7 +288,7 @@ for year in range(start_year,end_year+1):
         # Write the data out to the file
         ##################################
         #this line simply writes out the olumns we are intersted in, in the order we are intersted in, in the firmat we are intersted in (2 decomal places, 10 characters between columns) to the file we specified at the start
-            np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','tas','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
+        np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','tas','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
         #units are wind_speed m/s, wind_direction degrees, clt (now redundant) %, tas deg C, psl hPa, hurs %
         #approx values are:     1      0.50     41.25     39.44     26.28   1006.35     80.34
     # pool.close()

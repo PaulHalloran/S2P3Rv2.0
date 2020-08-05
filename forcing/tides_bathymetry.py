@@ -1,18 +1,18 @@
 #note, latitudes go from -90 to 90
 #minimum means furthest South
-minimum_latitude = -30
-maximum_latitude = 30
-latitude_resolution = 0.1 #degrees
+minimum_latitude = -50
+maximum_latitude = 60
+latitude_resolution = 0.2 #degrees
 
 #note, longitudes go from -180 to 180
 #minimum means furthest West
-minimum_longitude = -180
-maximum_longitude = 180
-longitude_resolution = 0.1 #degrees
+minimum_longitude = -10
+maximum_longitude = 10
+longitude_resolution = 0.2 #degrees
 
-location_of_bathymetry_file =  '/data/NAS-ph290/ph290/observations/ETOP/ETOPO1_Bed_g_gmt4.nc'
+location_of_bathymetry_file =  '/home/ph290/s2p3Rv2_manuscript/S2P3Rv2.0/forcing/ETOPO1_Bed_g_gmt4.nc'
 
-output_file_name = 's12_m2_s2_n2_h_map_30301801800point1.dat'
+output_file_name = 's12_m2_s2_n2_h_map.dat'
 
 import numpy as np
 import pandas as pd

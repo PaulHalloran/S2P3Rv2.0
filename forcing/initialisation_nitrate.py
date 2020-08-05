@@ -2,9 +2,9 @@
 # edit the following three lines
 #################
 
-output_file_name = 'initial_nitrate_minus29tominus10_142to156_atpoint1.dat'
-domain_file_name = 's12_m2_s2_n2_h_map_minus29tominus10_142to156_atpoint1.dat'
-location_of_World_Ocean_Atlas13_Nitrate_file =  '/data/NAS-geo01/ph290/observations/woa13_all_n13_01.nc'
+output_file_name = 'initial_nitrate.dat'
+domain_file_name = 's12_m2_s2_n2_h_map.dat'
+location_of_World_Ocean_Atlas13_Nitrate_file =  './woa13_all_n13_01.nc'
 #woa13_all_n13_01.nc is the N. hemisphere winter file
 #annual, summer or winter netcdf file (note, use winter file for better values in N. hem and summer file for better value in S. hem) from https://www.nodc.noaa.gov/cgi-bin/OC5/woa13/woa13oxnu.pl
 

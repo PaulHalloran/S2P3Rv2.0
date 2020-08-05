@@ -10,7 +10,7 @@ minimum_longitude = -10
 maximum_longitude = 10
 longitude_resolution = 0.2 #degrees
 
-location_of_bathymetry_file =  '/home/ph290/s2p3Rv2_manuscript/S2P3Rv2.0/forcing/ETOPO1_Bed_g_gmt4.nc'
+location_of_bathymetry_file =  './ETOPO1_Bed_g_gmt4.nc'
 
 output_file_name = 's12_m2_s2_n2_h_map.dat'
 

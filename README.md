@@ -55,6 +55,7 @@ clone this repository to your computer
 ```
 git clone https://github.com/PaulHalloran/S2P3Rv2.0.git
 ```
+**NOTE from this point in the instructions *my_path* refers to the path specifying the directory where you have cloned the repository from github**
 
 Move into the S2P3Rv2.0 directory
 
@@ -227,15 +228,20 @@ The files:
 
 s12_m2_s2_n2_h_map.dat, initial_nitrate.dat
 
-and those listed by
+and unless you have specified a different output directory for the meteorological data those listed by:
 
 ```
-ls met_data/*.dat
+ls met_data/*.tar.gz
 ```
 
 are those required to run the model these need to be copied to the /domain and meteorology directories where the model has been set up respectively (see readme for running the model)
 
+Note that the meteorological data for each lat/lon location for a specific year exists as a .dat file which is compressed into a single tar.gz file for each year. These are extracted when the model runs, but can be extracted manually to assess their contents.
+
+*For reference the columns in the meteorological files are: day number in year, wind speed (m/s), wind direction (degrees), surface atmospheric temperature (tas, deg C),surface atmospheric temperature duplicated for legacy reasons, sea level pressure (psl, hPa),surface level relative humidity (hurs, %), shortwave downwards radiation at the surface (rsds, wm-2), longwave downwards radiation at the surface (rlds, wm-2).
+
 ## Setting up and running the model
+
 
 
 *Hint. You may want to speed things up by creating a RAM disk and making this the temporary location to hold the unzipped met data.*
@@ -263,7 +269,7 @@ s2p3_rv2.0 should now be a working executable
 
 We want to copy the forcing files created above and listed in the section 'Summary of the forcing files' to the the location from which the model will access them. This may be a different machine if running on a compute server or HPC.
 
-If working on a simple computer and following teh instructions exactly as above this would involve:
+If working on a simple computer and following the instructions exactly as above this would involve:
 
 *Where **my_path** is the path to the directory where you cloned the repository from github, s12_m2_s2_n2_h_map.dat is the domain file you produced in the sectoin titled 'Producing the domain file', initial_nitrate.dat is the file you produced in the section titled 'Producing the nutrient initialisation file' and the files starting with the name 'met_data_' are those produced under the section titled 'Producing the meteorological files'.*
 

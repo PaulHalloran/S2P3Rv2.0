@@ -6,7 +6,7 @@ latitude_resolution = 0.2 #degrees
 
 #note, longitudes go from -180 to 180
 #minimum means furthest West
-minimum_longitude = -10
+minimum_longitude = 00
 maximum_longitude = 10
 longitude_resolution = 0.2 #degrees
 

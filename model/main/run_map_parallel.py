@@ -389,7 +389,7 @@ for year in range(start_year,end_year+1):
                 df[column_names[i+1]] = tmp_array[i+1,:]
 
             # uncomment this when this set of runs is complete - needed for runs wich span the 0 lon line
-            #df.longitude.values[np.where(df.longitude.values >= 180)] -= 360
+            df.longitude.values[np.where(df.longitude.values >= 180)] -= 360
 
             func = partial(output_netcdf,year,column_names,df,df_domain,specifying_names,standard_name,long_name,var_name,units,run_start_date, output_directory,output_file_name)
             my_log = zip(*pool.map(func, range(4,len(column_names))))

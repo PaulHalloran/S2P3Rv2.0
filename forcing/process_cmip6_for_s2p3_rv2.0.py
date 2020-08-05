@@ -34,18 +34,18 @@ from scipy.spatial import KDTree
 ##################################
 
 
-min_depth_lim = 4.0
-max_depth_lim = 50.0
+min_depth_lim = 10.0
+max_depth_lim = 30.0
 
-start_year = 2015
-end_year = 2100
+start_year = 2020
+end_year = 2021
 
 cmip_models = ['CanESM5'] # note that this should match exactly the model name used in the filename
 # experiments = ['historical','ssp119','ssp585'] # note that this shoudl match exactly the experiment name used in the filename
 #experiments = ['historical','ssp585'] # note that this shoudl match exactly the experiment name used in the filename
 experiments = ['ssp119'] # note that this shoudl match exactly the experiment name used in the filename
-my_suffix = '_r1i1p1f1_gn_*.nc' #e.g. '_all.nc'
-my_suffix_windspeed_output = '_r1i1p1f1_gn_allyears.nc' #e.g. '_all.nc'
+my_suffix = '_*.nc' #e.g. '_all.nc'
+my_suffix_windspeed_output = '_all.nc' #e.g. '_all.nc'
 
 domain_file = 's12_m2_s2_n2_h_map.dat'
 # Note, the script will fail with the error 'OverflowError: cannot serialize a string larger than 2 GiB'
@@ -57,8 +57,8 @@ domain_file = 's12_m2_s2_n2_h_map.dat'
 #Specify where the ncep data is stored on your computer
 #directory_containing_files_to_process = '/data/NAS-ph290/ph290/cmip5/for_s2p3_rv2.0/merged/'
 # directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_20C/output/'
-directory_containing_files_to_process = '/data/BatCaveNAS/ph290/cmip6/for_s2p3/'
-output_directory = '/data/BatCaveNAS/ph290/cmip6/for_s2p3/output_processed/gbr_hist_119/'
+directory_containing_files_to_process = '/data/local_ssd/ph290/test/cmip6/'
+output_directory = '/data/local_ssd/ph290/test/cmip6/processed/'
 
 #value to set the minimum wind value to to avoid build up of heat in high cloud, low wind speed situations
 # min_wind_value = 2.0
@@ -170,8 +170,8 @@ df = pd.read_fwf(domain_file,names=['lon','lat','t1','t2','t3','t4','t5','t6','t
 
 print 'completed reading in lats and lons from domain file'
 
-input_variables = ['vas','uas','clt','hurs','tas','psl','rsds','rlds','wind_speed']
-# /clt,hurs,psl,rlds,rsds,tas,uas,vas | r1i1p1f1 | CMIP6 | historical | UKESM1-0-LL
+input_variables = ['vas','uas','hurs','tas','psl','rsds','rlds','wind_speed']
+# clt (now redundant),hurs,psl,rlds,rsds,tas,uas,vas | r1i1p1f1 | CMIP6 | historical | UKESM1-0-LL
 # North/South wind vector, East/West wind vector, Total cloud cover, relative humidity, 2m air temperature, sea level pressure, wind speed (but calculated here), downwelling shortwave, downwelling longwave
 #conversion specific to relative: http://www.whoi.edu/page.do?pid=30578
 
@@ -192,7 +192,7 @@ input_variables2 = np.append(input_variables2,'wind_direction')
 for cmip_model in cmip_models:
     for experiment in experiments:
 
-        cube = iris.load_cube(directory_containing_files_to_process + input_variables[0]+'_day_'+cmip_model+'_'+experiment+my_suffix)
+        cube = iris.load_cube(directory_containing_files_to_process + input_variables[0]+'*_'+cmip_model+'_'+experiment+my_suffix)
 
         # rsds_day_CanESM5_ssp585_r1i1p1f1_gn_20150101-21001231.nc
         try:
@@ -211,13 +211,13 @@ for cmip_model in cmip_models:
         cwd = os.getcwd()
 
         # test if windspeed file_exists, if not produce it
-        exists = os.path.isfile(directory_containing_files_to_process + 'wind_speed'+'_day_'+cmip_model+'_'+experiment+my_suffix)
+        exists = os.path.isfile(directory_containing_files_to_process + 'wind_speed'+'*_'+cmip_model+'_'+experiment+my_suffix)
         if not exists:
-            u_cube = iris.load_cube(directory_containing_files_to_process + 'uas'+'_day_'+cmip_model+'_'+experiment+my_suffix)
-            v_cube = iris.load_cube(directory_containing_files_to_process + 'vas'+'_day_'+cmip_model+'_'+experiment+my_suffix)
+            u_cube = iris.load_cube(directory_containing_files_to_process + 'uas'+'*_'+cmip_model+'_'+experiment+my_suffix)
+            v_cube = iris.load_cube(directory_containing_files_to_process + 'vas'+'*_'+cmip_model+'_'+experiment+my_suffix)
             ws_ifunc = iris.analysis.maths.IFunc(ws_data_func,ws_units_func)
             ws_cube = ws_ifunc(u_cube, v_cube, new_name='wind speed')
-            iris.save(ws_cube, directory_containing_files_to_process + 'wind_speed'+'_day_'+cmip_model+'_'+experiment+my_suffix_windspeed_output)
+            iris.save(ws_cube, directory_containing_files_to_process + 'wind_speed'+'*_'+cmip_model+'_'+experiment+my_suffix_windspeed_output)
 
         for year in range(start_year,end_year+1):
             print 'processing year ',year
@@ -226,7 +226,7 @@ for cmip_model in cmip_models:
             for k in range(len(input_variables)):
                 single_input_variable = input_variables[k]
                 print 'loading data for '+single_input_variable
-                cube = iris.load_cube(directory_containing_files_to_process + single_input_variable+'_day_'+cmip_model+'_'+experiment+my_suffix)
+                cube = iris.load_cube(directory_containing_files_to_process + single_input_variable+'*_'+cmip_model+'_'+experiment+my_suffix)
                 try:
                     iris.coord_categorisation.add_year(cube, 'time', name='year')
                 except:
@@ -258,7 +258,7 @@ for cmip_model in cmip_models:
             znew[:,5,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,5))[0,0,:,:]
             znew[:,6,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,6))[0,0,:,:]
             znew[:,7,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,7))[0,0,:,:]
-            znew[:,8,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,8))[0,0,:,:]
+            # znew[:,8,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,8))[0,0,:,:]
             #wind speed, using pythagoras (square root of the sum of the squares of the x and y vector give teg lenth of the 3rd side of the triangle)
             # znew[:,np.where(input_variables2 == 'wind_speed')[0],:] = np.sqrt(np.square(znew[:,np.where(input_variables2 == 'uas')[0],:]) + np.square(znew[:,np.where(input_variables2 == 'vas')[0],:]))
             #wind direction calculated using the function arctan2, then converted from radians to degrees
@@ -292,8 +292,8 @@ for cmip_model in cmip_models:
                 # Write the data out to the file
                 ##################################
                 #this line simply writes out the olumns we are intersted in, in the order we are intersted in, in the firmat we are intersted in (2 decomal places, 10 characters between columns) to the file we specified at the start
-                np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','clt','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
-                #units are wind_speed m/s, wind_direction degrees, clt %, tas deg C, psl hPa, hurs %
+                np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','tas','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
+                #units are wind_speed m/s, wind_direction degrees, clt (now redundant) %, tas deg C, psl hPa, hurs %
                 #approx values are:     1      0.50     41.25     39.44     26.28   1006.35     80.34
             # pool.close()
             #tar and gzip the output files for each year:

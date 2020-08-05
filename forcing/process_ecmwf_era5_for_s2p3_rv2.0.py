@@ -31,26 +31,21 @@ from scipy.spatial import KDTree
 
 # print '*****************************************************'
 # print '*  delaying to allow input file sto process         *'
-# time.sleep(60.0*60.0)
+#time.sleep(60.0*60.0*2.0)
 # print '*****************************************************'
 ##################################
 # things that may need to be edited
 ##################################
 
 
-min_depth_lim = 4.0
-max_depth_lim = 50.0
+min_depth_lim = 10.0
+max_depth_lim = 30.0
 
-start_year = 1950
-end_year = 1979
-
-
-
-# SOME LON LATS DON'T HAVE METEROLOGY: /data/NAS-ph290/ph290/cmip5/for_s2p3_rv2.0/merged/
-# This appears to be at the edge of the dataset... maybe extract a larger regoin than is required
+start_year = 2000
+end_year = 2001
 
 
-domain_file = 's12_m2_s2_n2_h_map_30301801800point1.dat'
+domain_file = 's12_m2_s2_n2_h_map.dat'
 # Note, the script will fail with the error 'OverflowError: cannot serialize a string larger than 2 GiB'
 # if this file is too big. For example, a global 4km dataste is too big, but 4km from 30S to 30N is OK
 # The limitation is that the data has to be pickled to be run in a parallellised way, and currently
@@ -59,8 +54,9 @@ domain_file = 's12_m2_s2_n2_h_map_30301801800point1.dat'
 #Specify where the ncep data is stored on your computer
 #directory_containing_files_to_process = '/data/NAS-ph290/ph290/cmip5/for_s2p3_rv2.0/merged/'
 # directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_20C/output/'
-directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_era5/day_mean/region_of_interest/'
-output_directory = '/data/BatCaveNAS/ph290/ecmwf_era5/day_mean/output_processed/global_tropics3/'
+# directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_era5/day_mean/region_of_interest_UK/'
+directory_containing_files_to_process = '/data/local_ssd/ph290/test/'
+output_directory = '/data/local_ssd/ph290/test/processed/'
 
 #value to set the minimum wind value to to avoid build up of heat in high cloud, low wind speed situations
 # min_wind_value = 2.0
@@ -136,7 +132,7 @@ df = pd.read_fwf(domain_file,names=['lon','lat','t1','t2','t3','t4','t5','t6','t
 print 'completed reading in lats and lons from domain file'
 
 # input_variables = ['vwnd','uwnd','tcdc','rhum','air.2m','pres'] #these are the names of the variables in the NCEP files
-input_variables = ['vas','uas','clt','hurs','tas','psl','wind_speed','rsds','rlds']
+input_variables = ['vas','uas','hurs','tas','psl','rsds','rlds','wind_speed']
 # North/South wind vector, East/West wind vector, Total cloud cover, relative humidity, 2m air temperature, sea level pressure, wind speed (but calculated here), downwelling shortwave, downwelling longwave
 #conversion specific to relative: http://www.whoi.edu/page.do?pid=30578
 
@@ -218,6 +214,10 @@ for year in range(start_year,end_year+1):
         single_input_variable = input_variables[k]
         print 'loading data for '+single_input_variable
         cube = iris.load_cube(directory_containing_files_to_process + single_input_variable+'.nc')
+        try:
+            cube = cube.collapsed('air_pressure',iris.analysis.MEAN)
+        except:
+            pass
         #flip latitudes so mono' increasing for regridding
         cube.coord('latitude').points = np.flip(cube.coord('latitude').points)
         try:
@@ -252,7 +252,7 @@ for year in range(start_year,end_year+1):
     znew[:,5,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,5))[0,0,:,:]
     znew[:,6,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,6))[0,0,:,:]
     znew[:,7,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,7))[0,0,:,:]
-    znew[:,8,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,8))[0,0,:,:]
+    # znew[:,8,:] = np.array(interpolate_forcing_data(input_variables,sample_points_lat_lon,znew_tmp,cubes,8))[0,0,:,:]
     #wind speed, using pythagoras (square root of the sum of the squares of the x and y vector give teg lenth of the 3rd side of the triangle)
     # znew[:,np.where(input_variables2 == 'wind_speed')[0],:] = np.sqrt(np.square(znew[:,np.where(input_variables2 == 'uas')[0],:]) + np.square(znew[:,np.where(input_variables2 == 'vas')[0],:]))
     #wind direction calculated using the function arctan2, then converted from radians to degrees
@@ -265,7 +265,6 @@ for year in range(start_year,end_year+1):
     #     znew[:,np.where(input_variables2 == 'wind_speed')[0],:] = tmp
     znew[:,np.where(input_variables2 == 'psl')[0],:] /= 100.0
     znew[:,np.where(input_variables2 == 'tas')[0],:] -= 273.15
-    znew[:,np.where(input_variables2 == 'clt')[0],:] *= 100.0
     znew[:,np.where(input_variables2 == 'rsds')[0],:] /= (60.0*60.0) # ECMWF ERA5 data is in J/m2/hour - see https://confluence.ecmwf.int/display/CKB/ERA5+data+documentation#ERA5datadocumentation-Dataformat
     znew[:,np.where(input_variables2 == 'rlds')[0],:] /= (60.0*60.0) # ECMWF ERA5 data is in J/m2/hour - see https://confluence.ecmwf.int/display/CKB/ERA5+data+documentation#ERA5datadocumentation-Dataformat
     print 'writing met data out'
@@ -289,8 +288,8 @@ for year in range(start_year,end_year+1):
         # Write the data out to the file
         ##################################
         #this line simply writes out the olumns we are intersted in, in the order we are intersted in, in the firmat we are intersted in (2 decomal places, 10 characters between columns) to the file we specified at the start
-        np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','clt','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
-        #units are wind_speed m/s, wind_direction degrees, clt %, tas deg C, psl hPa, hurs %
+        np.savetxt(output_directory+output_filename+'lat'+str(np.round(latitude_point,4))+'lon'+str(np.round(longitude_point,4))+'_'+str(year)+'.dat', df2[['day_number','wind_speed','wind_direction','tas','tas','psl','hurs','rsds','rlds']].values, fmt='%s%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f')
+        #units are wind_speed m/s, wind_direction degrees, clt (now redundant) %, tas deg C, psl hPa, hurs %
         #approx values are:     1      0.50     41.25     39.44     26.28   1006.35     80.34
     # pool.close()
     #tar and gzip the output files for each year:

@@ -6,7 +6,7 @@ The instructions here assume you are working on a linux machine
 
 This repository relates to the manuscript 'S2P3-R v2.0: computationally efficient modelling of shelf seas on regional to global scales' (Halloran et al., 2020) submitted to GMD
 
-The repository contains three top level directories (forcing,  model and  processing). The code contained within 'Forcing' generates the forcing files required by the model from user selected input datastes and criteria. The code contained within 'Model' pertains to running the model and generating model output. The code contained within 'Processing' gives some example post-processing and plotting scripts to help the user test the model and produce some standard forms of output. These steps correspond to steps in the flow diagram presented in figure 3 of Halloran et al., (2020).
+The repository contains three top level directories (forcing,  model and  processing). The code contained within 'Forcing' generates the forcing files required by the model from user selected input datasets and criteria. The code contained within 'Model' pertains to running the model and generating model output. The code contained within 'Processing' gives some example post-processing and plotting scripts to help the user test the model and produce some standard forms of output. These steps correspond to steps in the flow diagram presented in figure 3 of Halloran et al., (2020).
 
 This README takes the user through the initial requirements, then generating the forcing files, running the model and undertaking basic post-processing.  
 
@@ -115,7 +115,7 @@ This file contains the latitude, longitude, tidal and bathymetry data for the si
 
 - Obtain your chosen bathymetry file in netcdf format. The global simulations in Halloran et al., 2020 use the ETOPO1 product ETOPO1_Bed_g_gmt4.nc (obtained from https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/netcdf/)
 
-edit the first 7 lines in tides_bathymetry.py to specify the domain you want the model to run for and the horizonal resolution
+edit the first 7 lines in tides_bathymetry.py to specify the domain you want the model to run for and the horizontal resolution
 (lines copied below for illustration)
 
 ```
@@ -144,20 +144,20 @@ The meteorological forcing can come from a variety of atmospheric models/reanaly
 
 ####  OPTION 1: Producing the meteorological files from CMIP
 
-make a directory within S2P3Rv2.0 to hold the meterological forcing data:
+make a directory within S2P3Rv2.0 to hold the meteorological forcing data:
 
 ```
 mkdir ../met_data
 ```
 
-The forcing data can be downloaded from the cmip6 archive (https://esgf-node.llnl.gov/projects/esgf-llnl/)
+The forcing data can be downloaded from the CMIP6 archive (https://esgf-node.llnl.gov/projects/esgf-llnl/)
 
 The required variables are, U and V surface winds, specific humidity (from which we calculate relative humidity), surface air temperature, sea-level pressure, net downwelling shortwave, downwelling longwave and land fraction
 
 The CMIP variable names for these are:
 vas, uas, hurs, tas, psl, rsds and rlds at daily frequency and sftlf as a fixed frequency file
 
-Note, the land fraction is used to replace values from atm. grid cells over land with the value from the nearest neighbouring over-ocean cell. This has been implemented to avoid (e.g.) anomalously low wind speeds arising from high terrestrial surface roughness occurring over the sea.
+Note, the land fraction is used to replace values from atmospheric grid cells over land with the value from the nearest neighbouring over-ocean cell. This has been implemented to avoid (e.g.) anomalously low wind speeds arising from high terrestrial surface roughness occurring over the sea.
 
 They must all be downloaded at daily frequency. At present the code has been set up only to work with a single ensemble member.
 
@@ -170,7 +170,7 @@ cdo mergetime tas*MIROC-ESM_historical_r1i1p1*.nc tas_MIROC-ESM_historical_all.n
 edit process_cmip6_for_s2p3_rv2.0.py to specify the:
  - spatial resolution you want the atm. forcing data to be at
  - the years for which you want to perform the run
- - the name of the cmip model you want to process (cmip_model = )
+ - the name of the CMIP model you want to process (cmip_model = )
  - the experiment name you want to process (experiment = )
  - the location of the merged netcdf files for that model/experiment (directory_containing_files_to_process = )
 
@@ -192,10 +192,10 @@ python2.7 example_ecmwf_era5_retrieval_script_netcdf.py
 
 Note that you may wish you edit the list of years under each 'year' heading to download more or less data.
 
-- Once the data is downloaded, iedit the file process_ecmwf_era5_for_s2p3_rv2.0.py to specify the:
+- Once the data is downloaded, edit the file process_ecmwf_era5_for_s2p3_rv2.0.py to specify the:
       - spatial resolution you want the atm. forcing data to be at
       - the years for which you want to perform the run
-      - the name of the cmip model you want to process (cmip_model = )
+      - the name of the CMIP model you want to process (cmip_model = )
       - the experiment name you want to process (experiment = )
       - the location of the merged netcdf files for that model/experiment (directory_containing_files_to_process = )
 
@@ -208,7 +208,7 @@ python2.7 process_ecmwf_era5_for_s2p3_rv2.0.py
 ###  Producing the nutrient initialisation file
 
 Download the gridded netcdf version of the World Ocean Atlas nitrate data from here: https://www.nodc.noaa.gov/cgi-bin/OC5/woa13/woa13oxnu.pl
-- These instructions assume you are using teh annual mean file: n00_01.nc, but it may be advisable to use the file pertaining to the winter season in the hemisphere of your simulation, because this is what the model is expecting
+- These instructions assume you are using the annual mean file: n00_01.nc, but it may be advisable to use the file pertaining to the winter season in the hemisphere of your simulation, because this is what the model is expecting
 
 Edit the strings on the right hand side of the first three lines of 'initialisation_nitrate.py'. These should point to the chosen output file name for the nutrient file, the name of the domain file produced above, and the location of the World Ocean Atlas data respectively.
 
@@ -250,12 +250,14 @@ e.g.
 ```
 sudo mkdir /mnt/ramdisk
 sudo mount -t tmpfs -o size=3g tmpfs /mnt/ramdisk
-then your temp location is  /mnt/ramdisk:
 ```
+then your temp location is  /mnt/ramdisk
 
 Move into the 'model' directory within S2P3Rv2.0
 
-cd S2P3Rv2.0/model
+```
+cd my_path/S2P3Rv2.0/model/main
+```
 
 - compile code
 
@@ -311,11 +313,10 @@ met_data_location = '/my_met_path_for_model_runs/' # The location containing the
 
 met_data_temporary_location = '/mnt/ramdisk/' # The model uncompresses the meteorological data files to a location from which it can be read quickly. The example here is a RAMdisk (see above), but it can be any storage - ideally fast storage.
 
-start_year = 1950 # The year for which to start the model simulation
-
-end_year = 2100 # The last year of teh simulation. It is is the same as start year the model will simulate for 1 full year
-depth_min = 4 # The most shallow water depth to run the model in. NOTE that these numbers MUST be the same as those used in the scripts used to produce the meterology and nutrient files, otherwse data will not be taken for the correct lats/lons and/or the script will fail
-depth_max = 50 # The deeped water depth to run teh model for (i.e. so you are not running the model in the open ocean)
+start_year = 1950 # The year for which to start the model simulation (note, this should fall within the years for which you have created the meteorological data)
+end_year = 2100 # The last year of the simulation. It is is the same as start year the model will simulate for 1 full year
+depth_min = 4 # The most shallow water depth to run the model in. NOTE that these numbers MUST be the same as those used in the scripts used to produce the meteorology (e.g. process_cmip6_for_s2p3_rv2.0.py) and nutrient files, otherwise data will not be taken for the correct lats/lons and/or the script will fail
+depth_max = 50 # The deepest water depth to run the model for (i.e. so you are not running the model in the open ocean)
 write_error_output = False # Change to True for debugging
 
 parallel_processing = True # True if you want to run on more than one processor. A single processor may make some debugging easier.
@@ -323,15 +324,15 @@ parallel_processing = True # True if you want to run on more than one processor.
 generate_netcdf_files = True #If True, saves model output as netcdf files. Set to False if you have set write_error_output to True
 ```
 
-You will also find a list of vaiable names under the heading 'Variables to output from model' in run_map_parallel.py. Set these to 1 if you want to output this variable, or 0 if you do not wish to output this variable.
+You will also find a list of variable names under the heading 'Variables to output from model' in run_map_parallel.py. Set these to 1 if you want to output this variable, or 0 if you do not wish to output this variable.
 
-- Making sure that you are in the '/my_path/s2p3_rv2.0/' directory run the model with either:
+- Making sure that you are in the '/my_path/s2p3_rv2.0/model/main/' directory run the model with either:
 
 ```
 python2.7 run_map_parallel.py
 ```
 
-OR if you are running on a cluster/supercomputer you may need to submit this with a runscript specific to your batch system. An example using msub is provided in the file 'runscript_parallel'. This woudl be submitted with 'msub runscript_parallel'
+OR if you are running on a cluster/supercomputer you may need to submit this with a runscript specific to your batch system. An example using msub is provided in the file 'runscript_parallel'. This would be submitted with 'msub runscript_parallel'
 
 #model output
 

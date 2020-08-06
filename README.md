@@ -28,7 +28,7 @@ sudo apt-get upgrade
 sudo apt-get install git
 ```
 
-- Python2.7 with additional libraries (see below)
+- Python2.7 with additional libraries (see below). Note Python3 is likely to work with only minor changes to scripts (e.g. print 'x' to print('x')) but has not been tested.
 	- installing conda will make this easier https://conda.io/docs/user-guide/install/index.html
 		- additional libraries can then be installed with:
 
@@ -357,3 +357,99 @@ At the very least edit the three lines below the line 'Edit the three lines...' 
 ```
 python2.7 -i /my_path/s2p3_rv2.0/processing/vim basic_plots.py
 ```
+
+
+##  An example of the full process using supplied sample data
+
+This assumes you have installed all of the generic software described in the *Requirements* section, and obtained the files which require registration before download at www.tpxo.net described in the *Setting up and generating forcing data* section.
+
+Note that the sample data is only appropriate for this region.time to save space.
+
+- Navigate to the directory where you want to install the model.
+
+```
+git clone https://github.com/PaulHalloran/S2P3Rv2.0.git
+
+cd S2P3Rv2.0/forcing
+```
+
+- get the tidal calculation software: https://drive.google.com/file/d/1FBlS_Xmf6_dnCg1T0t5GSTRTwMjLuA8N/view and copy into your current directory (forcing)
+
+```
+tar zxvf OTPS.tar.Z
+
+mv OTPS/* .
+
+mv Model_atlas DATA/
+
+gfortran -o extract_HC -fconvert=swap -frecord-marker=4 extract_HC.f90 subs.f90
+
+gfortran -o predict_tide -fconvert=swap -frecord-marker=4 predict_tide.f90 subs.f90
+
+gfortran -o extract_local_model -fconvert=swap -frecord-marker=4 extract_local_model.f90 subs.f90
+```
+
+- COPY the files grid_tpxo9  and u_tpxo9.v1 you have obtained from www.tpxo.net into the DATA directory
+
+- Download the ETOPO1_Bed_g_gmt4.nc bathymetry file from NOAA (https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/netcdf/) and copy into your current directory (forcing)
+
+- Run the tides_bathymetry.py file with it's default settings (this produces a domain file for part of the shelf off the coast of the Andaman and Nicobar Islands)
+
+'''
+python2.7 tides_bathymetry.py
+'''
+
+- Produce the meteorological data (note that the forcing data has been post-processed to make the files small for this example, so don't use for anything other than demonstration purposes)
+	- The default for the script process_ecmwf_era5_for_s2p3_rv2.0.py is to take the meteorological data provided in the sample data directory
+
+```
+python2.7 process_ecmwf_era5_for_s2p3_rv2.0.py
+```
+- Produce the nutrient ancillary file
+
+- download the nitrate data file (woa13_all_n13_01.nc) from the World Ocean Atlas (https://www.nodc.noaa.gov/) into the forcing directory
+
+- run the script
+
+```
+python2.7 initialisation_nitrate.py
+```
+
+- Copy the domain and nutrient file into the domain directory
+
+```
+cp initial_nitrate.dat s12_m2_s2_n2_h_map.dat ../model/domain/
+
+```
+- Move into the model directory
+
+```
+cd ../model/main
+```
+
+- compile the code
+
+```
+gfortran -Ofast -o s2p3_rv2.0 s2p3_rv2.0.f90
+```
+
+- find the path to the local directory
+
+```
+pwd
+```
+
+- copy the result (e.g. /home/ph290/test_s2p3Rv2/S2P3Rv2.0/model/main) but leaving off model/main
+
+- open *run_map_parallel.py*
+- paste the copied path between the inverted commas following *base_directory = *
+
+- Run the model:
+
+```
+python2.7 run_map_parallel.py
+```
+
+- plot the output
+
+cd  

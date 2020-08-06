@@ -452,4 +452,10 @@ python2.7 run_map_parallel.py
 
 - plot the output
 
-cd  
+```
+cd ../../processing
+
+python2.7 -i test_plot.py
+```
+
+Note that the limited nature of the module results here means that you can't test all of functionality demonstrated in *basic_plots.py*

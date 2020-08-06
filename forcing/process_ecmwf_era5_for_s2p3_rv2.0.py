@@ -51,10 +51,6 @@ domain_file = 's12_m2_s2_n2_h_map.dat'
 # The limitation is that the data has to be pickled to be run in a parallellised way, and currently
 # pickle has a 2GB limit in python2
 
-#Specify where the ncep data is stored on your computer
-#directory_containing_files_to_process = '/data/NAS-ph290/ph290/cmip5/for_s2p3_rv2.0/merged/'
-# directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_20C/output/'
-# directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_era5/day_mean/region_of_interest_UK/'
 directory_containing_files_to_process = '../sampledata/'
 output_directory = '../met_data/'
 

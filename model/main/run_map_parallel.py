@@ -13,11 +13,11 @@ import time
 # you may need to change things here             #
 ##################################################
 
-base_directory = '/home/ph290/s2p3Rv2_manuscript/S2P3Rv2.0/'
+base_directory = '/home/ph290/test_s2p3Rv2/S2P3Rv2.0/'
 num_procs = mp.cpu_count() # this will use all available processors. Note that on a multi-node machine it can only use the processors on one node
 # num_procs = 1 # The default is to use all available processors, but it is possible to specify the number of processors.
 
-output_directory = '/data/local_ssd/ph290/s2p3_rv2.0/output/test/'  #where you want the output to go
+output_directory = '../../test_output/'  #where you want the output to go
 
 output_file_name = 'test_output'
 meterological_file_name = 'meterological_data'
@@ -25,16 +25,17 @@ domain_file_name = 's12_m2_s2_n2_h_map.dat'
 nutrient_file_name = 'initial_nitrate.dat'
 executable_file_name = 's2p3_rv2.0'
 
-met_data_location = '/data/local_ssd/ph290/test/cmip6/processed/' # The location containing the tar.gz met files (in the format met_data_year.tar.gz)
+met_data_location = '../../met_data/' # The location containing the tar.gz met files (in the format met_data_year.tar.gz)
 
-met_data_temporary_location = '/mnt/ramdisk/' # The location that met data for each year will be un tar.gziped into
+# met_data_temporary_location = '/mnt/ramdisk/'
+met_data_temporary_location = '../met/' # The location that met data for each year will be un tar.gziped into
 # each grid point each year has to read in a new meterology dataset from disk so it may make sense to make this temporary location a RAM disk (see readme)
 
-start_year = 2020
+start_year = 2000
 
-end_year = 2021 # same as start year resuls in a 1 year run
+end_year = 2000 # same as start year resuls in a 1 year run
 depth_min = 10.0 # NOTE that these numbers MUST be the same as those used in the scripts used to produce the meterology and nutrient files, otherwse data will not be taken for teh correct lats/lons and/or the script will fail
-depth_max = 30.0
+depth_max = 50.0
 write_error_output = False
 
 parallel_processing = True

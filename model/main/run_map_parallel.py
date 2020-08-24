@@ -8,6 +8,7 @@ import multiprocessing as mp
 from functools import partial
 import uuid
 import time
+import pd
 
 ##################################################
 # you may need to change things here             #
@@ -17,7 +18,7 @@ base_directory = '/home/ph290/test_s2p3Rv2/S2P3Rv2.0/'
 num_procs = mp.cpu_count() # this will use all available processors. Note that on a multi-node machine it can only use the processors on one node
 # num_procs = 1 # The default is to use all available processors, but it is possible to specify the number of processors.
 
-output_directory = '../../test_output/'  #where you want the output to go
+output_directory = base_directory+'/test_output/'  #where you want the output to go (note you can specify the whole thing - no need for base_directory+ at the start)
 
 output_file_name = 'test_output'
 meterological_file_name = 'meterological_data'
@@ -345,7 +346,16 @@ for year in range(start_year,end_year+1):
     try:
         shutil.move(output_directory+output_file_name+'_'+str(year), output_directory+output_file_name+'_'+str(year)+'_previous')
     except:
-        print 'no previous output file to move'
+        print 'no previous output text file to move'
+
+
+    for column_name in column_names:
+        try:
+            shutil.move(output_directory+output_file_name+'_'+column_name.replace(" ", "")+'_'+str(year)+'.nc', output_directory+output_file_name+'_'+column_name.replace(" ", "")+'_'+str(year)+'_previous'+'.nc')
+        except:
+            print 'no previous '+column_name+' output netcdf file to move'
+
+
 
     if parallel_processing:
         pool = mp.Pool(processes=num_procs)

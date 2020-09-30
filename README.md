@@ -395,9 +395,9 @@ gfortran -o extract_local_model -fconvert=swap -frecord-marker=4 extract_local_m
 
 - Run the tides_bathymetry.py file with it's default settings (this produces a domain file for part of the shelf off the coast of the Andaman and Nicobar Islands)
 
-'''
+```
 python2.7 tides_bathymetry.py
-'''
+```
 
 - Produce the meteorological data (note that the forcing data has been post-processed to make the files small for this example, so don't use for anything other than demonstration purposes)
 	- The default for the script process_ecmwf_era5_for_s2p3_rv2.0.py is to take the meteorological data provided in the sample data directory

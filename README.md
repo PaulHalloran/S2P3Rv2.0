@@ -28,7 +28,7 @@ sudo apt-get upgrade
 sudo apt-get install git
 ```
 
-- Python2.7 with additional libraries (see below). Note Python3 is likely to work with only minor changes to scripts (e.g. print 'x' to print('x')) but has not been tested.
+- Python3 (tested 3.8) with additional libraries (see below). Recently updated for Python3.
 	- installing conda will make this easier https://conda.io/docs/user-guide/install/index.html
 		- additional libraries can then be installed with:
 
@@ -133,7 +133,7 @@ location_of_bathymetry_file =  '/pathway_to_where_you_have_downloaded_your_bathy
 produce the domain file by tides_bathymetry.py
 
 ```
-python2.7 tides_bathymetry.py
+python tides_bathymetry.py
 ```
 
 You can check the output has been written correctly by ensuring the file s12_m2_s2_n2_h_map.dat contains non-zero data
@@ -177,7 +177,7 @@ edit process_cmip6_for_s2p3_rv2.0.py to specify the:
 run the script to produce the forcing with (e.g.):
 
 ```
-python2.7 process_cmip6_for_s2p3_rv2.0.py
+python process_cmip6_for_s2p3_rv2.0.py
 ```
 
 ####  OPTION 2: Producing the meteorological files from ECMWF's ERA5 reanalysis
@@ -187,7 +187,7 @@ ERA5 data is available from here: https://cds.climate.copernicus.eu
 Data can be retrieved automatically by running the python script 'example_ecmwf_era5_retrieval_script_netcdf.py':
 
 ```
-python2.7 example_ecmwf_era5_retrieval_script_netcdf.py
+python example_ecmwf_era5_retrieval_script_netcdf.py
 ```
 
 Note that you may wish you edit the list of years under each 'year' heading to download more or less data.
@@ -202,7 +202,7 @@ Note that you may wish you edit the list of years under each 'year' heading to d
 - run 'process_ecmwf_era5_for_s2p3_rv2.0.py'
 
 ```
-python2.7 process_ecmwf_era5_for_s2p3_rv2.0.py
+python process_ecmwf_era5_for_s2p3_rv2.0.py
 ```
 
 ###  Producing the nutrient initialisation file
@@ -219,7 +219,7 @@ location_of_World_Ocean_Atlas13_Nitrate_file =  '/the_path_to_your_downloaded_Wo
 Generate the nitrate forcing ancillary with:
 
 ```
-python2.7 initialisation_nitrate.py
+python initialisation_nitrate.py
 ```
 
 ### Summary of the forcing files
@@ -329,7 +329,7 @@ You will also find a list of variable names under the heading 'Variables to outp
 - Making sure that you are in the '/my_path/s2p3_rv2.0/model/main/' directory run the model with either:
 
 ```
-python2.7 run_map_parallel.py
+python run_map_parallel.py
 ```
 
 OR if you are running on a cluster/supercomputer you may need to submit this with a runscript specific to your batch system. An example using msub is provided in the file 'runscript_parallel'. This would be submitted with 'msub runscript_parallel'
@@ -355,7 +355,7 @@ A single script ('processing/basic_plots.py') is supplied which provides an exam
 
 At the very least edit the three lines below the line 'Edit the three lines...' to point the script to the model output you wish to plot, then run with:
 ```
-python2.7 -i /my_path/s2p3_rv2.0/processing/vim basic_plots.py
+python -i /my_path/s2p3_rv2.0/processing/vim basic_plots.py
 ```
 
 
@@ -396,14 +396,14 @@ gfortran -o extract_local_model -fconvert=swap -frecord-marker=4 extract_local_m
 - Run the tides_bathymetry.py file with it's default settings (this produces a domain file for part of the shelf off the coast of the Andaman and Nicobar Islands)
 
 ```
-python2.7 tides_bathymetry.py
+python tides_bathymetry.py
 ```
 
 - Produce the meteorological data (note that the forcing data has been post-processed to make the files small for this example, so don't use for anything other than demonstration purposes)
 	- The default for the script process_ecmwf_era5_for_s2p3_rv2.0.py is to take the meteorological data provided in the sample data directory
 
 ```
-python2.7 process_ecmwf_era5_for_s2p3_rv2.0.py
+python process_ecmwf_era5_for_s2p3_rv2.0.py
 ```
 - Produce the nutrient ancillary file
 
@@ -412,7 +412,7 @@ python2.7 process_ecmwf_era5_for_s2p3_rv2.0.py
 - run the script
 
 ```
-python2.7 initialisation_nitrate.py
+python initialisation_nitrate.py
 ```
 
 - Copy the domain and nutrient file into the domain directory
@@ -447,7 +447,7 @@ pwd
 - Run the model:
 
 ```
-python2.7 run_map_parallel.py
+python run_map_parallel.py
 ```
 
 - plot the output
@@ -455,7 +455,7 @@ python2.7 run_map_parallel.py
 ```
 cd ../../processing
 
-python2.7 -i test_plot.py
+python -i test_plot.py
 ```
 
 Note that the limited nature of the module results here means that you can't test all of functionality demonstrated in *basic_plots.py*

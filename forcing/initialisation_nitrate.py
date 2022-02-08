@@ -4,7 +4,7 @@
 
 output_file_name = 'initial_nitrate.dat'
 domain_file_name = 's12_m2_s2_n2_h_map.dat'
-location_of_World_Ocean_Atlas13_Nitrate_file =  './woa13_all_n13_01.nc'
+location_of_World_Ocean_Atlas13_Nitrate_file =  './woa13_all_n15_01.nc'
 #woa13_all_n13_01.nc is the N. hemisphere winter file
 #annual, summer or winter netcdf file (note, use winter file for better values in N. hem and summer file for better value in S. hem) from https://www.nodc.noaa.gov/cgi-bin/OC5/woa13/woa13oxnu.pl
 
@@ -51,9 +51,9 @@ cube2.data.data[:]=cube2.data.fill_value
 
 new_data = cube2.data
 
-print 'constructing bottom water nitrate array'
+print('constructing bottom water nitrate array')
 for i in range(np.shape(cube2)[0]):
-    print 'processing latitude ',i
+    print('processing latitude ',i)
     for j in range(np.shape(cube2)[1]):
         try:
             new_data[i,j] = cube.data[cube.data.mask[:,i,j]==False][-1,i,j]
@@ -73,7 +73,7 @@ cube2.data = new_data
 
 # tides_df = pd.read_csv(domain_file_name,names=['lon','lat','t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','depth'],delim_whitespace=True,skiprows=1)
 fwidths=[8,8,6,6,6,6,6,6,6,6,6,6,8]
-print 'reading in lats and lons from domain file'
+print('reading in lats and lons from domain file')
 tides_df = pd.read_fwf(domain_file_name,names=['lon','lat','t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','depth'],widths = fwidths,
                  skiprows=[0],dtype={'lon':float,'lat':float,'t1':float,'t2':float,'t3':float,'t4':float,'t5':float,'t6':float,'t7':float,'t8':float,'t9':float,'t10':float,'depth':float},usecols=['lon','lat','depth'])
 
@@ -117,7 +117,7 @@ for i in range(len(cube2.coord('longitude').points)):
 tree = KDTree(places)
 
 for i in range(len(tides_df['lon'].values)):
-#    print i,' of ',len(tides_df['lon'].values)
+#    print(i,' of ',len(tides_df['lon'].values)
     lon = tides_df['lon'].values[i]
     lat = tides_df['lat'].values[i]
     location = places[find_loc(lat, lon)]
@@ -137,7 +137,7 @@ output_df['nitrate'] = nitrate
 try:
     os.remove(output_file_name)
 except:
-    print ('no file to remove')
+    print('no file to remove')
 
 use_cols=['lon','lat','nitrate']
 

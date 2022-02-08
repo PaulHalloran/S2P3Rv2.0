@@ -8,13 +8,13 @@ import multiprocessing as mp
 from functools import partial
 import uuid
 import time
-import pd
+import pandas as pd
 
 ##################################################
 # you may need to change things here             #
 ##################################################
 
-base_directory = '/home/ph290/test_s2p3Rv2/S2P3Rv2.0/'
+base_directory = '/home/ph290/s2p3/S2P3Rv2.0/'
 num_procs = mp.cpu_count() # this will use all available processors. Note that on a multi-node machine it can only use the processors on one node
 # num_procs = 1 # The default is to use all available processors, but it is possible to specify the number of processors.
 
@@ -130,7 +130,8 @@ def put_data_into_cube(df,df_domain,variable,specifying_names,standard_name,long
             lat_loc = np.where(np.around(cube.coord('latitude').points,decimals=6) == np.around(lat,decimals=6))[0][0]
             lon_loc = np.where(np.around(cube.coord('longitude').points,decimals=6) == np.around(lon,decimals=6))[0][0]
             data[i,lat_loc,lon_loc] = df_tmp[variable].values[j]
-    data = np.ma.masked_where((data.data < -999.9) & (data.data > -1000.0),data)
+    data_tmp = np.asarray(data.data)
+    data = np.ma.masked_where((data_tmp < -999.9) & (data_tmp > -1000.0),data)
     # data = np.ma.masked_where(data.data == 0.0,data)
     cube.data = data
     cube.data.fill_value = -999.99
@@ -187,7 +188,7 @@ for i,line in enumerate(lines[1::]):
         smaj5.append(line[64:70])
         smin5.append(line[70:76])
         woa_nutrient.append(lines2[counter][16:22])
-	counter += counter
+    counter += counter
 
 
 
@@ -290,7 +291,7 @@ def run_model(domain_file_name,lats_lons,year,start_year,unique_job_id,met_data_
     str(include_speed3_output),
     'EOF'
     ])
-    # print run_command
+    # print(run_command
     proc = subprocess.Popen([run_command],  shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
     # return out
@@ -306,7 +307,7 @@ unique_job_id = str(uuid.uuid4())
 num_lines = sum(1 for line in open(base_directory+'domain/'+domain_file_name)) - 1
 # num_lines = 10
 
-print 'initial unzipping of met data to extract lat and lon data'
+print('initial unzipping of met data to extract lat and lon data')
 subprocess.call('tar -C '+met_data_temporary_location+' -zxf '+met_data_location+'met_data_'+str(start_year)+'.tar.gz', shell=True)
 
 files = glob.glob(met_data_temporary_location+'*_'+str(start_year)+'.dat')
@@ -324,36 +325,36 @@ for i,file in enumerate(files):
 # pool = mp.Pool(processes=num_procs)
 # func = partial(run_model, domain_file_name, lats_lons, year, start_year, unique_job_id, met_data_temporary_location,lon_domain,lat_domain,smaj1,smin1,smaj2,smin2,smaj3,smin3,smaj4,smin4,smaj5,smin5,woa_nutrient,alldepth,include_depth_output,include_temp_surface_output,include_temp_bottom_output,include_chlorophyll_surface_output,include_phyto_biomass_surface_output,include_phyto_biomass_bottom_output,include_PAR_surface_output,include_PAR_bottom_output,include_windspeed_output,include_stressx_output,include_stressy_output,include_Etide_output,include_Ewind_output,include_u_mean_surface_output,include_u_mean_bottom_output,include_grow1_mean_surface_output,include_grow1_mean_bottom_output,include_uptake1_mean_surface_output,include_uptake1_mean_bottom_output,include_tpn1_output,include_tpg1_output,include_speed3_output)
 # results, errors = zip(*pool.map(func, range(1)))
-# print results[0].split('\n')[0]
-# print results[0].split('\n')[1]
-# print results[0].split('\n')[2]
-# # print errors[0].split('\n')[0]
+# print(results[0].split('\n')[0]
+# print(results[0].split('\n')[1]
+# print(results[0].split('\n')[2]
+# # print(errors[0].split('\n')[0]
 # pool.close()
 
 
-print 'looping through years'
+print('looping through years')
 for year in range(start_year,end_year+1):
 # year = start_year
-    print year
+    print(year)
     #clean up and prexisting met files
     try:
         files_to_delete = glob.glob(met_data_temporary_location+'*.dat')
         [os.remove(f) for f in files_to_delete]
     except:
-        print 'no met files to clean up'
+        print('no met files to clean up')
 
     subprocess.call('tar -C '+met_data_temporary_location+' -zxf '+met_data_location+'met_data_'+str(year)+'.tar.gz', shell=True)
     try:
         shutil.move(output_directory+output_file_name+'_'+str(year), output_directory+output_file_name+'_'+str(year)+'_previous')
     except:
-        print 'no previous output text file to move'
+        print('no previous output text file to move')
 
 
     for column_name in column_names:
         try:
             shutil.move(output_directory+output_file_name+'_'+column_name.replace(" ", "")+'_'+str(year)+'.nc', output_directory+output_file_name+'_'+column_name.replace(" ", "")+'_'+str(year)+'_previous'+'.nc')
         except:
-            print 'no previous '+column_name+' output netcdf file to move'
+            print('no previous '+column_name+' output netcdf file to move')
 
 
 
@@ -372,7 +373,7 @@ for year in range(start_year,end_year+1):
             # for result in results:
             #     lines = result.split('\n')[:-1]
             #     for line in lines:
-            #         # print line
+            #         # print(line
             #         df.loc[i] = map(float,line.split())
             #         i+=1
             #
@@ -383,13 +384,14 @@ for year in range(start_year,end_year+1):
             run_start_date = str(year)+'-01-01'
             df = pd.DataFrame(columns=(column_names))
             i=0
-            tmp_array = np.zeros([len(column_names),np.sum([len(result.split('\n')[:-1]) for result in results])])
+            tmp_array = np.zeros([len(column_names),np.sum([len(result.split(b'\n')[:-1]) for result in results])])
             for result in results:
+                result = result.decode('ascii')
                 lines = result.split('\n')[:-1]
                 for line in lines:
-                    # print line
+                    # print(line
                     # df.loc[i] = map(float,line.split())
-                    tmp_array[:,i] = map(float,line.split())
+                    tmp_array[:,i] = list(map(float,line.split()))
                     i+=1
 
 #             df = pd.DataFrame({column_names[0]: tmp_array[0,:], column_names[1]: tmp_array[1,:], column_names[2]: tmp_array[2,:], column_names[3]: tmp_array[3,:], column_names[4]: tmp_array[4,:], column_names[5]: tmp_array[5,:], column_names[6]: tmp_array[6,:], column_names[7]: tmp_array[7,:], column_names[8]: tmp_array[8,:]})
@@ -428,7 +430,7 @@ for year in range(start_year,end_year+1):
         files_to_delete = glob.glob(met_data_temporary_location+'*.dat')
         [os.remove(f) for f in files_to_delete]
     except:
-        print 'no met files to clean up'
+        print('no met files to clean up')
 
 
 

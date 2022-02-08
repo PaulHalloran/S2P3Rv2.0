@@ -10,7 +10,7 @@ minimum_longitude = 90
 maximum_longitude = 94
 longitude_resolution = 0.1 #degrees
 
-location_of_bathymetry_file =  './ETOPO1_Bed_g_gmt4.nc'
+location_of_bathymetry_file =  '/massive/ph290/observations/ETOPO1_Bed_g_gmt4.nc'
 
 output_file_name = 's12_m2_s2_n2_h_map.dat'
 

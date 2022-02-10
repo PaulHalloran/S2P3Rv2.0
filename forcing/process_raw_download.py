@@ -47,7 +47,7 @@ for model in dict.keys():
 
             ## Files are pressent, so merge into single file per variable
             print('processing: '+var+'_day_'+model+'_'+experiment+'_'+variant_label+'_'+grid_label+'.nc')
-            subprocess.call(['cdo mergetime '+base_dir+'/'+experiment+'/'+model_directory_name+'/'+var+'_day_'+model+'_'+experiment+'_'+variant_label+'_'+grid_label+'_????????-????????.nc  'base_dir+'/'+experiment+'/'+model_directory_name+'/'++var+'_day_'+model+'_'+experiment+'_'+variant_label+'_'+grid_label+'.nc'], shell=True)
+            subprocess.call(['cdo mergetime '+base_dir+'/'+experiment+'/'+model_directory_name+'/'+var+'_day_'+model+'_'+experiment+'_'+variant_label+'_'+grid_label+'_????????-????????.nc  '+base_dir+'/'+experiment+'/'+model_directory_name+'/'+var+'_day_'+model+'_'+experiment+'_'+variant_label+'_'+grid_label+'.nc'], shell=True)
             files_to_remove = glob.glob(base_dir+'/'+experiment+'/'+model_directory_name+'/'+var+'_day_'+model+'_'+experiment+'_'+variant_label+'_'+grid_label+'_????????-????????.nc')
             for file_to_remove in files_to_remove:
                 os.remove(file_to_remove)

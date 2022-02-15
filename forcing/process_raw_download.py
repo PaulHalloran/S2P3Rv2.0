@@ -13,7 +13,7 @@ variables=['tas','uas','vas','psl','hurs','rsds','rlds']
 
 dict={}
 dict[model_name]={}
-dict[model_name]['experiments'] = ['ssp585']
+dict[model_name]['experiments'] = ['historical','ssp585']
 dict[model_name]['grid_labels']=['gn']
 dict[model_name]['variant_labels']=['r1i1p1f2']
 
@@ -52,7 +52,7 @@ for model in dict.keys():
                 first_year = min(years_flat)
                 last_year = max(years_flat)
                 print('Year range in data is: ',first_year,last_year)
-                logger.error('Year range in data is: ',first_year,last_year)
+                logger.error('Year range in data is: '+str(first_year)+' '++str(last_year))
 
                 ### Check that all files are present, i.e. that there are no year ranges that have not downloaded
                 for i,dummy in enumerate(years_list[1::]):

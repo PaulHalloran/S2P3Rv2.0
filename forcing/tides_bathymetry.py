@@ -1,18 +1,24 @@
+# import pprofile
+# profiler = pprofile.Profile()
+# with profiler:
+
 #note, latitudes go from -90 to 90
 #minimum means furthest South
-minimum_latitude = 10
-maximum_latitude = 14
+minimum_latitude = -30.0
+maximum_latitude = 30.0
 latitude_resolution = 0.1 #degrees
 
 #note, longitudes go from -180 to 180
 #minimum means furthest West
-minimum_longitude = 90
-maximum_longitude = 94
+minimum_longitude = -180
+maximum_longitude =180
 longitude_resolution = 0.1 #degrees
+
+
 
 location_of_bathymetry_file =  '/massive/ph290/observations/ETOPO1_Bed_g_gmt4.nc'
 
-output_file_name = 's12_m2_s2_n2_h_map.dat'
+output_file_name = 's12_m2_s2_n2_h_map_0point1_global_minus30_to_30_minus180_to_180_0point1.dat'
 
 import numpy as np
 import pandas as pd
@@ -50,6 +56,12 @@ def replace(file_path,file_path2, pattern, subst):
 
 
 def ap2ep(Au, PHIu, Av, PHIv):
+    # Convert tidal amplitude and phase lag (ap) parameters into tidal ellipse (ep) parameters.
+    # Au, PHIu, Av, PHIv are the amplitudes and phase lags (in degrees) of u- and v- tidal current components.
+    # SEMA: Semi-major axes, or the maximum speed;
+    # ECC:  Eccentricity, the ratio of semi-minor axis over the semi-major axis; its negative value indicates that the ellipse is traversed in clockwise direction.
+    # INC:  Inclination, the angles (in degrees) between the semi-major axes and u-axis.
+    # PHA:  Phase angles, the time (in angles and in degrees) when the tidal currents reach their maximum speeds,  (i.e. PHA=omega*tmax).
     PHIu = PHIu / 180. * np.pi
     PHIv = PHIv / 180. * np.pi
     # Make complex amplitudes for u and v
@@ -67,6 +79,8 @@ def ap2ep(Au, PHIu, Av, PHIv):
     # calculate the ellipse parameters
     SEMA = Wp + Wm
     SEMI = Wp - Wm
+    SEMA[np.where(SEMA == 0)] = np.nan
+    SEMI[np.where(SEMI == 0)] = np.nan
     ECC = SEMI / SEMA
     PHA = (THETAm - THETAp) / 2.
     INC = (THETAm + THETAp) / 2.
@@ -200,3 +214,8 @@ for j in range(len(output_df)):
   # write line to output file
    outF.write("\n")
 outF.close()
+
+
+# profiler.print_stats()
+# Or to a file:
+# profiler.dump_stats("./profiler_stats.txt")

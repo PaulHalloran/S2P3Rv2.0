@@ -1313,7 +1313,7 @@ Subroutine grazing()	! Get phytoplankton grazing parameters
         write(run_year_str,3001) run_year
 3001    format (I4)
         ! open(60,file=fileplace//"meterological_datalat"//TRIM(ADJUSTL(lat_in_domain))//"lon"//TRIM(ADJUSTL(lon_in_domain))//"_"//run_year_str//".dat",status='old')
-        open(60,file=TRIM(ADJUSTL(met_data_location))//"meterological_datalat"//TRIM(ADJUSTL(lat_in_domain))&
+        open(60,file=TRIM(ADJUSTL(met_data_location))//"meteorological_datalat"//TRIM(ADJUSTL(lat_in_domain))&
         //"lon"//TRIM(ADJUSTL(lon_in_domain))//"_"//run_year_str//".dat",status='old')
 
 

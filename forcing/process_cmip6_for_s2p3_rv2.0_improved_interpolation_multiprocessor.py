@@ -45,10 +45,11 @@ end_year = 2100
 cmip_models = ['UKESM1-0-LL'] # note that this should match exactly the model name used in the filename
 # experiments = ['historical','ssp119','ssp585'] # note that this shoudl match exactly the experiment name used in the filename
 #experiments = ['historical','ssp585'] # note that this shoudl match exactly the experiment name used in the filename
-experiments = ['historical','ssp585'] # note that this shoudl match exactly the experiment name used in the filename
+experiments = ['historical','ssp370'] # note that this shoudl match exactly the experiment name used in the filename
 my_suffix = '_r1i1p1f2_gn.nc' #e.g. '_all.nc'
 my_suffix_windspeed_output = '_r1i1p1f2_gn.nc' #e.g. '_all.nc'
 
+base_directory = '/home/ph290/s2p3/S2P3Rv2.0/model/'
 domain_file = 's12_m2_s2_n2_h_map_global_minus30_30_0point1_batmobile.dat'
 # Note, the script will fail with the error 'OverflowError: cannot serialize a string larger than 2 GiB'
 # if this file is too big. For example, a global 4km dataste is too big, but 4km from 30S to 30N is OK
@@ -59,12 +60,12 @@ domain_file = 's12_m2_s2_n2_h_map_global_minus30_30_0point1_batmobile.dat'
 #Specify where the ncep data is stored on your computer
 #directory_containing_files_to_process = '/data/NAS-ph290/ph290/cmip5/for_s2p3_rv2.0/merged/'
 # directory_containing_files_to_process = '/data/BatCaveNAS/ph290/ecmwf_20C/output/'
-base_directory_containing_files_to_process = '/massive/ph290/cmip6/'
-base_output_directory = '/massive/ph290/s2p3_met_processed/global/'
+base_directory_containing_files_to_process = '/data/ssd2/ph290/cmip6/'
+base_output_directory = '/data/ssd2/ph290/s2p3_met_processed/global_david_test/'
 # note doing temporary stuff on RAMdisk to speed things up
 base_tmp_output_directory = '/mnt/ramdisk/s2p3_tmp/'
 
-directory_containing_land_sea_mask_files = '/massive/ph290/cmip6/sftlf_files/'
+directory_containing_land_sea_mask_files = '/data/ssd2/ph290/cmip6/sftlf_files/'
 
 
 
@@ -157,14 +158,15 @@ def ws_units_func(u_cube, v_cube):
 # Other things that need to be defined, but probably not changed
 ##################################
 
-output_filename = 'meterological_data'
-
+#### ONLY CHANGE THIS IF YOU ARE ALSO CHANGING THE FORTRAN AND RECOMPILING ####
+output_filename = 'meteorological_data'
+#### ONLY CHANGE THIS IF YOU ARE ALSO CHANGING THE FORTRAN AND RECOMPILING ####
 
 
 # df = pd.read_csv(domain_file,names=['lon','lat','t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','depth'],delim_whitespace=True,skiprows=[0],dtype={'lon':float,'lat':float,'t1':float,'t2':float,'t3':float,'t4':float,'t5':float,'t6':float,'t7':float,'t8':float,'t9':float,'t10':float,'depth':float})
 fwidths=[8,8,6,6,6,6,6,6,6,6,6,6,8]
 print('reading in lats and lons from domain file')
-df = pd.read_fwf(domain_file,names=['lon','lat','t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','depth'],widths = fwidths,
+df = pd.read_fwf(base_directory+'domain/'+domain_file,names=['lon','lat','t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','depth'],widths = fwidths,
                  skiprows=[0],dtype={'lon':float,'lat':float,'t1':float,'t2':float,'t3':float,'t4':float,'t5':float,'t6':float,'t7':float,'t8':float,'t9':float,'t10':float,'depth':float},usecols=['lon','lat','depth'])
 
 print('completed reading in lats and lons from domain file')
@@ -174,7 +176,6 @@ input_variables = ['vas','uas','hurs','tas','psl','rsds','rlds','wind_speed']
 # North/South wind vector, East/West wind vector, Total cloud cover, relative humidity, 2m air temperature, sea level pressure, wind speed (but calculated here), downwelling shortwave, downwelling longwave
 #conversion specific to relative: http://www.whoi.edu/page.do?pid=30578
 
-output_filename = 'meterological_data'
 
 ##################################
 # pre-processing, reading, and storing sensibly the data from each of meterology variables, extracting data for the location of interest
@@ -250,8 +251,13 @@ for cmip_model in cmip_models:
             ws_cube = ws_ifunc(u_cube, v_cube, new_name='wind speed')
             iris.save(ws_cube, directory_containing_files_to_process + 'wind_speed'+'_'+cmip_model+'_'+experiment+my_suffix_windspeed_output)
 
+        exit_loop = False
         for year in range(start_year,end_year+1):
-            exit_loop = False
+            if exit_loop:
+                if  year in tmp_years:
+                    exit_loop = False
+            if exit_loop:
+                continue
             if len(glob.glob(output_directory+'met_data_'+str(year)+'.tar.gz')) != 0:
                 print(str(year)+' files already exist in the output directory. Skipping.')
                 pass
@@ -279,8 +285,9 @@ for cmip_model in cmip_models:
                             iris.coord_categorisation.add_year(cube, 'time', name='year')
                         except:
                             pass
-                        if  year in cube.coord('year').points:
-                            cube_year = cube[np.where(cube.coord('year').points == year)]
+                        tmp_years = cube.coord('year').points
+                        if  year in tmp_years:
+                            cube_year = cube[np.where(tmp_years == year)]
                             cube_data.append(cube_year.data)
                             cubes.append(cube_year)
                         else:

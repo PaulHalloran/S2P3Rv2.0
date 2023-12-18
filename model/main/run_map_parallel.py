@@ -18,22 +18,22 @@ base_directory = '/home/ph290/s2p3/S2P3Rv2.0/model/'
 num_procs = mp.cpu_count() # this will use all available processors. Note that on a multi-node machine it can only use the processors on one node
 # num_procs = 1 # The default is to use all available processors, but it is possible to specify the number of processors.
 
-output_directory = '/data/ssd2/ph290/GRIP/s2p3_output/ssp370_UKESM1-0-LL_test_for_david_060723/'  #where you want the output to go (note you can specify the whole thing - no need for base_directory+ at the start)
+output_directory = '/data/ssd2/ph290/GRIP/s2p3_output/ssp245_EC-Earth3/'  #where you want the output to go (note you can specify the whole thing - no need for base_directory+ at the start)
 
-output_file_name = 'global_tropics_ssp370_UKESM1-0-LL_test_for_david_060723'
+output_file_name = 'global_tropics_ssp245_EC-Earth3'
 #meteorological_file_name = 'meteorological_data'
 domain_file_name = 's12_m2_s2_n2_h_map_global_minus30_30_0point1_batmobile.dat'
 nutrient_file_name = 'initial_nitrate_global_3030_s_hem_winter_batmobile.dat'
 executable_file_name = 's2p3_rv2.0'
 
 #met_data_location = '/data/ssd2/ph290/GRIP/s2p3_met_processed/global/ssp370/UKESM1-0-LL/' # The location containing the tar.gz met files (in the format met_data_year.tar.gz)
-met_data_location = '/data/ssd2/ph290/s2p3_met_processed/global_david_test/ssp370_UKESM1-0-LL/'
+met_data_location = '/data/ssd2/ph290/GRIP/s2p3_met_processed/global/ssp245/EC-Earth3/'
 
 met_data_temporary_location = '/mnt/ramdisk/'
 # met_data_temporary_location = '../met/' # The location that met data for each year will be un tar.gziped into
 # each grid point each year has to read in a new meteorology dataset from disk so it may make sense to make this temporary location a RAM disk (see readme)
 
-start_year = 2015
+start_year = 1950
 
 end_year = 2100 # same as start year results in a 1 year run
 depth_min = 4.0 # NOTE that these numbers MUST be the same as those used in the scripts used to produce the meteorology and nutrient files, otherwse data will not be taken for the correct lats/lons and/or the script will fail
@@ -169,7 +169,7 @@ smin4=[]
 smaj5=[]
 smin5=[]
 woa_nutrient=[]
-counter = 0
+#counter = 0
 for i,line in enumerate(lines[1::]):
     depth = float(line[77:84])
     if ((depth >= depth_min) & (depth <= depth_max) & (depth > 0.0)):
@@ -186,8 +186,8 @@ for i,line in enumerate(lines[1::]):
         smin4.append(line[58:64])
         smaj5.append(line[64:70])
         smin5.append(line[70:76])
-        woa_nutrient.append(lines2[counter][16:22])
-    counter += counter
+        woa_nutrient.append(lines2[i][16:22])
+#    counter += counter
 
 def run_model(domain_file_name,lats_lons,year,start_year,unique_job_id,met_data_temporary_location,lon_domain,lat_domain,smaj1,smin1,smaj2,smin2,smaj3,smin3,smaj4,smin4,smaj5,smin5,woa_nutrient,alldepth,include_depth_output,include_temp_surface_output,include_temp_bottom_output,include_chlorophyll_surface_output,include_phyto_biomass_surface_output,include_phyto_biomass_bottom_output,include_PAR_surface_output,include_PAR_bottom_output,include_windspeed_output,include_stressx_output,include_stressy_output,include_Etide_output,include_Ewind_output,include_u_mean_surface_output,include_u_mean_bottom_output,include_grow1_mean_surface_output,include_grow1_mean_bottom_output,include_uptake1_mean_surface_output,include_uptake1_mean_bottom_output,include_tpn1_output,include_tpg1_output,include_speed3_output,i):
     #modifying so that the fortran code looks for the correct met file, rather than us having to copy it into the working directory

@@ -1,0 +1,63 @@
+#!Jinja2
+
+{% set START_YEAR = START_YEAR %}
+{% set END_YEAR = END_YEAR %}
+{% set PLATFORM = PLATFORM|default("spice") %}
+
+[scheduling]
+    cycling mode = integer
+    initial cycle point = {{ START_YEAR }}
+    final cycle point = {{ END_YEAR }}
+    [[graph]]
+        R1 = """
+            setup_model => run_model
+        """
+        P1 = """
+            run_model[-P1] => run_model
+        """
+        R1/P0 = """
+            run_model[-P1] => run_model => final_model
+        """
+
+[runtime]
+
+    [[root]]
+        platform = {{ PLATFORM }}
+        [[[environment]]]
+        USER_CONDA_PROFILE="/opt/conda/etc/profile.d/conda.sh"
+
+    [[CONDA]]
+        execution time limit = PT1M
+        pre-script = """
+        . "${USER_CONDA_PROFILE}"
+        conda activate --stack "shelf-seas"
+        """
+
+    [[setup_model]]
+        inherit = None, CONDA
+        execution time limit = PT60M
+        script = """
+        python ${CYLC_SUITE_RUN_DIR}/model/cylc_components/model_setup.py
+        """
+        [[[directives]]]
+            --mem = 8G
+
+    [[run_model]]
+        inherit = None, CONDA
+        execution time limit = PT360M
+        script = """
+        python  ${CYLC_SUITE_RUN_DIR}/model/cylc_components/run_model.py \
+            --year ${CYLC_TASK_CYCLE_POINT}
+        """
+        [[[directives]]]
+            --mem = 30G
+            --ntasks = 24
+
+    [[final_model]]
+        inherit = None, CONDA
+        execution time limit = PT60M
+        script = """
+        python ${CYLC_SUITE_RUN_DIR}/model/cylc_components/model_final.py
+        """
+        [[[directives]]]
+            --mem = 8G

@@ -1,0 +1,113 @@
+##############################################################################
+# Directories and filenames
+##############################################################################
+# Directory in which model is stored
+base_directory = "/home/h06/jwiggs/shelf_seas_regional/S2P3Rv2.0/model/"
+
+# Directory for model outputs to be stored
+output_directory = "/data/users/jwiggs/S2P3_UKESM1-0-LL/model_output/"
+
+# Name of model run (will be pre-pended to output names)
+output_file_name = "SundaShelf_ssp245_UKESM1-0-LL_initial_test"
+
+# Name of domain file for run
+domain_file_name = "s12_m2_s2_n2_h_map_SundaShelf.dat"
+
+# Name of nutrient forcing for run
+nutrient_file_name = "initial_nitrate_SundaShelf2.dat"
+
+# Name of S2P3-R v2 executable
+executable_file_name = "s2p3_rv2.0"
+
+# Directory containing pre-processed met forcing 
+met_data_location = "/data/users/jwiggs/S2P3_UKESM1-0-LL/processed/"
+
+# Directory for model to do work on met forcing data
+met_data_temporary_location = "/home/h06/jwiggs/shelf_seas_regional/S2P3Rv2.0/met_data/work/"
+
+##############################################################################
+# Domain Variables
+##############################################################################
+
+start_year = 2015
+end_year = 2100  # same as start year results in a 1 year run
+
+depth_min = 4.0  # NOTE that these numbers MUST be the same as those used in the scripts used to produce the meteorology and nutrient files, otherwse data will not be taken for the correct lats/lons and/or the script will fail
+depth_max = 50.0
+
+##############################################################################
+# Config switches
+##############################################################################
+
+# Write error from fortran model (Not currently usable)
+write_error_output = false
+
+# Use parallel processing?
+parallel_processing = true
+
+# Generate netcdf files?
+generate_netcdf_files = true
+
+##############################################################################
+# Model outputs
+##############################################################################
+
+include_depth_output=1
+
+include_temp_surface_output=1
+
+include_temp_bottom_output=1
+
+include_chlorophyll_surface_output=1
+
+include_phyto_biomass_surface_output=0
+
+include_phyto_biomass_bottom_output=0
+
+# daily mean surface of PAR W m-2
+include_PAR_surface_output=1 
+
+# daily mean bottom of PAR W m-2
+include_PAR_bottom_output=1 
+
+# windspeed
+include_windspeed_output=0 
+
+# x component of surface wind drag
+include_stressx_output=0
+
+# y component of surface wind drag
+include_stressy_output=0 
+
+# Mixing power in the tidal currents (assumes constant mixing efficiency 0.003)
+include_Etide_output=0 
+
+# Mixing power in the wind (assumes constant mixing efficiency 0.023 and slippage factor=0.025)
+include_Ewind_output=0 
+
+# daily mean surface u in cm/s !!
+include_u_mean_surface_output=0 
+
+# daily mean bottom u in cm/s !!
+include_u_mean_bottom_output=0 
+
+# daily mean growth rate d-1 surface
+include_grow1_mean_surface_output=0 
+
+# daily mean growth rate d-1 bottom
+include_grow1_mean_bottom_output=0 
+
+# daily mean DIN uptake rate mmol DIN (mg C)-1 d-1 surface
+include_uptake1_mean_surface_output=0 
+
+# daily mean DIN uptake rate mmol DIN (mg C)-1 d-1 bottom
+include_uptake1_mean_bottom_output=0 
+
+# total water column net production / mg C m-2 d-1
+include_tpn1_output=0 
+
+# total water column gross production / mg C m-2 hd-1
+include_tpg1_output=0 
+
+# depth-mean current speed
+include_speed3_output=0	
